@@ -19,8 +19,9 @@ import LoadingSpinner from '@/components/ui/loading-spinner';
 import { Button } from '@/components/ui/button';
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Terminal, ShoppingCart, Image as ImageIcon, ClipboardList, Activity } from "lucide-react";
+import { Terminal, ShoppingCart, ClipboardList } from "lucide-react";
 import Image from 'next/image';
+import Script from 'next/script';
 
 export type RecipeForModal = CoreRecipe & { day: number; mealTitle: string; imageDataUri?: string };
 export type SelectedLunches = Record<number, CoreRecipe | null>;
@@ -359,6 +360,23 @@ export default function HomePage() {
               </Button>
             </div>
           )}
+          {canGenerateAdditionalInfo && (
+            <div className="text-center mt-8">
+              <Script
+                src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js"
+                data-name="bmc-button"
+                data-slug="6hxrhhkvhs2"
+                data-color="#FFDD00"
+                data-emoji=""
+                data-font="Cookie"
+                data-text="Buy me a coffee"
+                data-outline-color="#000000"
+                data-font-color="#000000"
+                data-coffee-color="#ffffff"
+                strategy="lazyOnload"
+              />
+            </div>
+          )}
         </>
       )}
       
@@ -380,4 +398,3 @@ export default function HomePage() {
     </div>
   );
 }
-
