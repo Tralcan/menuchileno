@@ -35,7 +35,7 @@ export default function RecipeDetailModal({ recipe, isOpen, onClose }: RecipeDet
           </DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="flex-grow min-h-0 h-full"> {/* Added h-full */}
+        <ScrollArea className="flex-1 min-h-0"> {/* Changed className here */}
           <div className="space-y-6 p-6">
             <div>
               <h3 className="font-headline text-xl mb-2 flex items-center"><ListChecks size={20} className="mr-2 text-primary"/>Ingredientes:</h3>
