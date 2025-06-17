@@ -373,7 +373,7 @@ export default function HomePage() {
                 data-outline-color="#000000"
                 data-font-color="#000000"
                 data-coffee-color="#ffffff"
-                strategy="lazyOnload"
+                strategy="afterInteractive" 
               />
             </div>
           )}
