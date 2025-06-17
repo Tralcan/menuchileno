@@ -290,19 +290,19 @@ export default function HomePage() {
         <div className="relative w-full h-64 md:h-80 rounded-lg overflow-hidden shadow-2xl mb-8">
           <Image 
             src="https://placehold.co/1200x400.png"
-            alt="Variedad de platos de almuerzo chilenos"
+            alt="Variedad de platos de almuerzo chilenos y latinos"
             layout="fill"
             objectFit="cover"
             priority
-            data-ai-hint="chilean lunch food"
+            data-ai-hint="latin american food lunch"
             className="animate-pulse-subtle"
           />
           <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center p-4">
             <h1 className="text-4xl md:text-5xl font-headline text-primary-foreground mb-4 drop-shadow-lg">
-              Bienvenido a Menú Chileno
+              Bienvenido a MySmart Menu
             </h1>
             <p className="text-lg md:text-xl text-primary-foreground/90 max-w-2xl drop-shadow-md">
-              Genera opciones de almuerzos chilenos, peruanos y latinos. Crea tu lista de compras y revisa la información nutricional. ¡Cocina inteligente, come delicioso!
+              Genera opciones de almuerzos variados. Crea tu lista de compras y revisa la información nutricional. ¡Cocina inteligente, come delicioso!
             </p>
           </div>
         </div>

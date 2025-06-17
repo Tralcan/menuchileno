@@ -5,8 +5,8 @@ import AppHeader from '@/components/layout/app-header';
 import AppFooter from '@/components/layout/app-footer';
 
 export const metadata: Metadata = {
-  title: 'Menú Chileno',
-  description: 'Generador inteligente de menú, lista de compras e información nutricional',
+  title: 'MySmart Menu',
+  description: 'Generador inteligente de menú, lista de compras e información nutricional para planificar tus comidas.',
 };
 
 export default function RootLayout({
