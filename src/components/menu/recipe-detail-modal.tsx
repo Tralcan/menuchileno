@@ -1,3 +1,4 @@
+
 import type { RecipeForModal } from '@/app/page';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -34,7 +35,7 @@ export default function RecipeDetailModal({ recipe, isOpen, onClose }: RecipeDet
           </DialogDescription>
         </DialogHeader>
         
-        <ScrollArea className="flex-grow">
+        <ScrollArea className="flex-grow min-h-0"> {/* Added min-h-0 here */}
           <div className="space-y-6 p-6">
             <div>
               <h3 className="font-headline text-xl mb-2 flex items-center"><ListChecks size={20} className="mr-2 text-primary"/>Ingredientes:</h3>
