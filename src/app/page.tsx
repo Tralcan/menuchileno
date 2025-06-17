@@ -7,15 +7,19 @@ import { generateMenu } from '@/ai/flows/generate-menu';
 import type { CreateShoppingListInput, CreateShoppingListOutput } from '@/ai/flows/create-shopping-list';
 import { createShoppingList } from '@/ai/flows/create-shopping-list';
 import { generateRecipeImage, type GenerateRecipeImageInput } from '@/ai/flows/generate-recipe-image-flow';
+import type { GenerateNutritionalInfoInput, GenerateNutritionalInfoOutput, RecipeNutritionalInfo, NutritionalRecipeInput } from '@/ai/flows/generate-nutritional-info-flow';
+import { generateNutritionalInfo } from '@/ai/flows/generate-nutritional-info-flow';
+
 import MenuForm from '@/components/menu/menu-form';
 import MenuDisplay from '@/components/menu/menu-display';
 import ShoppingListDisplay from '@/components/menu/shopping-list-display';
+import NutritionalInfoDisplay from '@/components/menu/nutritional-info-display';
 import RecipeDetailModal from '@/components/menu/recipe-detail-modal';
 import LoadingSpinner from '@/components/ui/loading-spinner';
 import { Button } from '@/components/ui/button';
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Terminal, ShoppingCart, Image as ImageIcon } from "lucide-react"; // Added ImageIcon for future use if needed
+import { Terminal, ShoppingCart, Image as ImageIcon, ClipboardList, Activity } from "lucide-react";
 import Image from 'next/image';
 
 export type RecipeForModal = CoreRecipe & { day: number; mealTitle: string; imageDataUri?: string };
@@ -24,10 +28,12 @@ export type SelectedLunches = Record<number, CoreRecipe | null>;
 export default function HomePage() {
   const [isGeneratingMenu, setIsGeneratingMenu] = useState(false);
   const [isGeneratingList, setIsGeneratingList] = useState(false);
+  const [isGeneratingNutrition, setIsGeneratingNutrition] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [menuData, setMenuData] = useState<DailyMenu[] | null>(null);
   const [selectedLunches, setSelectedLunches] = useState<SelectedLunches>({});
   const [shoppingList, setShoppingList] = useState<string[] | null>(null);
+  const [nutritionalReport, setNutritionalReport] = useState<RecipeNutritionalInfo[] | null>(null);
   const [selectedRecipeForModal, setSelectedRecipeForModal] = useState<RecipeForModal | null>(null);
   const [loadingImages, setLoadingImages] = useState<Record<string, boolean>>({}); // Key: recipeName_day_mealType
   const { toast } = useToast();
@@ -38,6 +44,7 @@ export default function HomePage() {
     setMenuData(null);
     setSelectedLunches({});
     setShoppingList(null);
+    setNutritionalReport(null);
     setLoadingImages({});
 
     try {
@@ -56,7 +63,6 @@ export default function HomePage() {
           duration: 7000,
         });
 
-        // Asynchronously generate images for each recipe
         result.menu.forEach(dayMenu => {
           const processRecipeImage = async (recipe: CoreRecipe, day: number, mealType: 'suggested' | 'optional') => {
             const recipeKey = `${recipe.recipeName}_${day}_${mealType}`;
@@ -83,7 +89,6 @@ export default function HomePage() {
                     return dm;
                   });
                 });
-                // Update selectedLunches if the generated image is for a currently selected lunch
                 setSelectedLunches(currentSelectedLunches => {
                     const daySelection = currentSelectedLunches[day];
                     if (daySelection && daySelection.recipeName === recipe.recipeName) {
@@ -131,6 +136,8 @@ export default function HomePage() {
 
   const handleLunchSelection = (day: number, recipe: CoreRecipe) => {
     setSelectedLunches(prev => ({ ...prev, [day]: recipe }));
+    setShoppingList(null); // Clear shopping list if selection changes
+    setNutritionalReport(null); // Clear nutritional report if selection changes
   };
 
   const handleGenerateShoppingList = async () => {
@@ -146,6 +153,8 @@ export default function HomePage() {
     setIsGeneratingList(true);
     setError(null);
     setShoppingList(null);
+    setNutritionalReport(null);
+
 
     const shoppingListInputItems: CreateShoppingListInput['menu'] = Object.values(selectedLunches)
       .filter((recipe): recipe is CoreRecipe => recipe !== null) 
@@ -191,8 +200,69 @@ export default function HomePage() {
     }
   };
 
+  const handleGenerateNutritionalInfo = async () => {
+    if (!menuData || Object.values(selectedLunches).some(lunch => lunch === null) && Object.keys(selectedLunches).length !== menuData.length ) {
+         const unselectedDays = menuData.filter(dayMenu => !selectedLunches[dayMenu.day]).length;
+         if (unselectedDays > 0) {
+            toast({
+                title: "Selección Incompleta",
+                description: `Por favor, selecciona un almuerzo para cada día del menú antes de generar la información nutricional. Faltan ${unselectedDays} día(s).`,
+                variant: "destructive",
+            });
+            return;
+         }
+    }
+    
+    const nutritionalInputItems: NutritionalRecipeInput[] = Object.values(selectedLunches)
+      .filter((recipe): recipe is CoreRecipe => recipe !== null)
+      .map(recipe => ({
+        recipeName: recipe.recipeName,
+        ingredients: recipe.ingredients,
+      }));
+
+    if (nutritionalInputItems.length === 0) {
+      toast({
+        title: "No hay selecciones",
+        description: "No has seleccionado ningún almuerzo para generar la información nutricional.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsGeneratingNutrition(true);
+    setError(null);
+    setNutritionalReport(null);
+    setShoppingList(null);
+
+    try {
+      const result = await generateNutritionalInfo({ selectedRecipes: nutritionalInputItems });
+      if (result && result.nutritionalReport) {
+        setNutritionalReport(result.nutritionalReport);
+        toast({
+          title: "¡Información Nutricional Generada!",
+          description: "El análisis nutricional para tus selecciones está listo.",
+          variant: "default",
+          duration: 5000,
+        });
+      } else {
+        throw new Error("La respuesta de la IA para la información nutricional no tiene el formato esperado.");
+      }
+    } catch (err) {
+      console.error("Error generating nutritional information:", err);
+      const errorMessage = err instanceof Error ? err.message : "Ocurrió un error desconocido al generar la información nutricional.";
+      setError(errorMessage);
+      toast({
+        title: "Error al Generar Información Nutricional",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingNutrition(false);
+    }
+  };
+
+
   const handleViewRecipe = (recipe: CoreRecipe, day: number, mealTitle: string) => {
-    // Ensure the latest imageDataUri from menuData is passed to the modal
     const currentDayMenu = menuData?.find(dm => dm.day === day);
     let recipeWithLatestImage = recipe;
     if (currentDayMenu) {
@@ -210,7 +280,7 @@ export default function HomePage() {
     setSelectedRecipeForModal(null);
   };
   
-  const canGenerateShoppingList = menuData && Object.values(selectedLunches).some(lunch => lunch !== null);
+  const canGenerateAdditionalInfo = menuData && Object.values(selectedLunches).some(lunch => lunch !== null);
 
 
   return (
@@ -228,27 +298,29 @@ export default function HomePage() {
           />
           <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center p-4">
             <h1 className="text-4xl md:text-5xl font-headline text-primary-foreground mb-4 drop-shadow-lg">
-              Bienvenido a Mi Smart Menú
+              Bienvenido a Menú Chileno
             </h1>
             <p className="text-lg md:text-xl text-primary-foreground/90 max-w-2xl drop-shadow-md">
-              Genera opciones de almuerzos chilenos y crea tu lista de compras personalizada. ¡Cocina inteligente, come delicioso!
+              Genera opciones de almuerzos chilenos, peruanos y latinos. Crea tu lista de compras y revisa la información nutricional. ¡Cocina inteligente, come delicioso!
             </p>
           </div>
         </div>
         <MenuForm onSubmit={handleMenuFormSubmit} isLoading={isGeneratingMenu} />
       </section>
 
-      {(isGeneratingMenu || isGeneratingList) && (
+      {(isGeneratingMenu || isGeneratingList || isGeneratingNutrition) && (
         <div className="flex flex-col items-center justify-center space-y-4 p-8 text-center">
           <LoadingSpinner size={64} />
           <p className="text-xl font-semibold text-primary animate-pulse">
-            {isGeneratingMenu ? "Cocinando tus opciones de menú..." : "Creando tu lista de compras..."}
+            {isGeneratingMenu && "Cocinando tus opciones de menú..."}
+            {isGeneratingList && "Creando tu lista de compras..."}
+            {isGeneratingNutrition && "Analizando la información nutricional..."}
           </p>
           <p className="text-muted-foreground">Esto puede tomar unos momentos.</p>
         </div>
       )}
 
-      {error && !isGeneratingMenu && !isGeneratingList && (
+      {error && !isGeneratingMenu && !isGeneratingList && !isGeneratingNutrition && (
          <Alert variant="destructive" className="max-w-2xl mx-auto">
            <Terminal className="h-4 w-4" />
            <AlertTitle>Error</AlertTitle>
@@ -265,24 +337,38 @@ export default function HomePage() {
             onViewRecipe={handleViewRecipe}
             loadingImages={loadingImages}
           />
-          {canGenerateShoppingList && (
-            <div className="text-center mt-8">
+          {canGenerateAdditionalInfo && (
+            <div className="text-center mt-8 flex flex-col sm:flex-row justify-center items-center gap-4">
               <Button 
                 onClick={handleGenerateShoppingList} 
-                disabled={isGeneratingList || isGeneratingMenu}
+                disabled={isGeneratingList || isGeneratingMenu || isGeneratingNutrition}
                 size="lg"
                 className="bg-accent hover:bg-accent/90 text-accent-foreground"
               >
                 <ShoppingCart className="mr-2 h-5 w-5" />
                 {isGeneratingList ? "Generando Lista..." : "Generar Lista de Compras"}
               </Button>
+              <Button 
+                onClick={handleGenerateNutritionalInfo} 
+                disabled={isGeneratingNutrition || isGeneratingMenu || isGeneratingList}
+                size="lg"
+                variant="outline"
+                className="border-primary text-primary hover:bg-primary/10"
+              >
+                <ClipboardList className="mr-2 h-5 w-5" />
+                {isGeneratingNutrition ? "Analizando Nutrición..." : "Información Nutricional"}
+              </Button>
             </div>
           )}
         </>
       )}
       
-      {shoppingList && !isGeneratingList && (
+      {shoppingList && !isGeneratingList && !isGeneratingNutrition && (
           <ShoppingListDisplay shoppingList={shoppingList} />
+      )}
+
+      {nutritionalReport && !isGeneratingNutrition && !isGeneratingList && (
+          <NutritionalInfoDisplay nutritionalReport={nutritionalReport} />
       )}
 
       {selectedRecipeForModal && (
@@ -295,3 +381,4 @@ export default function HomePage() {
     </div>
   );
 }
+
