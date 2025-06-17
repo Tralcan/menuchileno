@@ -17,8 +17,8 @@ export default function RecipeDetailModal({ recipe, isOpen, onClose }: RecipeDet
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col p-0 overflow-hidden">
-        <DialogHeader className="p-6 pb-0 shrink-0">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] grid grid-rows-[auto_1fr_auto] p-0 overflow-hidden">
+        <DialogHeader className="p-6 pb-0 row-start-1">
           <div className="relative h-64 w-full mb-4 rounded-t-md overflow-hidden">
             <Image
               src={`https://placehold.co/800x400.png?text=${encodeURIComponent(recipe.recipeName)}`}
@@ -35,7 +35,7 @@ export default function RecipeDetailModal({ recipe, isOpen, onClose }: RecipeDet
           </DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 min-h-0 overflow-hidden"> {/* Root clips, Viewport (internal) scrolls */}
+        <ScrollArea className="row-start-2 min-h-0"> {/* Root clips, Viewport (internal) scrolls */}
           <div className="p-6 space-y-6">
             <div>
               <h3 className="font-headline text-xl mb-2 flex items-center"><ListChecks size={20} className="mr-2 text-primary"/>Ingredientes:</h3>
@@ -50,6 +50,13 @@ export default function RecipeDetailModal({ recipe, isOpen, onClose }: RecipeDet
               <h3 className="font-headline text-xl mb-2 flex items-center"><UtensilsCrossed size={20} className="mr-2 text-primary"/>Instrucciones:</h3>
               <p className="text-sm whitespace-pre-line leading-relaxed bg-secondary/30 p-4 rounded-md">{recipe.instructions}</p>
             </div>
+            
+            <div>
+              <h3 className="font-headline text-xl mb-2 flex items-center"><Info size={20} className="mr-2 text-primary"/>Descripción:</h3>
+              <p className="text-sm italic text-muted-foreground bg-secondary/30 p-4 rounded-md">
+                {recipe.evocativeDescription}
+              </p>
+            </div>
 
             <div>
               <h3 className="font-headline text-xl mb-2 flex items-center"><Info size={20} className="mr-2 text-primary"/>Información Adicional:</h3>
@@ -61,7 +68,7 @@ export default function RecipeDetailModal({ recipe, isOpen, onClose }: RecipeDet
           </div>
         </ScrollArea>
 
-        <DialogFooter className="p-6 pt-4 border-t shrink-0">
+        <DialogFooter className="p-6 pt-4 border-t row-start-3">
           <Button onClick={onClose} variant="outline">Cerrar</Button>
         </DialogFooter>
       </DialogContent>
