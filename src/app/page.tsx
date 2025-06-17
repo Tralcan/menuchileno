@@ -37,7 +37,26 @@ export default function HomePage() {
   const [nutritionalReport, setNutritionalReport] = useState<RecipeNutritionalInfo[] | null>(null);
   const [selectedRecipeForModal, setSelectedRecipeForModal] = useState<RecipeForModal | null>(null);
   const [loadingImages, setLoadingImages] = useState<Record<string, boolean>>({}); // Key: recipeName_day_mealType
+  const [heroImageDataUri, setHeroImageDataUri] = useState<string | null>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    const generateHeroImage = async () => {
+      try {
+        const imageResult = await generateRecipeImage({
+          recipeName: "Hero Image Chilean Cuisine",
+          evocativeDescription: "A vibrant and appetizing array of diverse Chilean and Latin American lunch dishes, beautifully plated. Bright, food photography style, suitable for a cooking app banner.",
+        });
+        if (imageResult && imageResult.imageDataUri) {
+          setHeroImageDataUri(imageResult.imageDataUri);
+        }
+      } catch (err) {
+        console.error("Error generating hero image:", err);
+        // Fallback to placeholder is implicit as heroImageDataUri remains null
+      }
+    };
+    generateHeroImage();
+  }, []); 
 
   const handleMenuFormSubmit = async (values: GenerateMenuInput) => {
     setIsGeneratingMenu(true);
@@ -137,8 +156,8 @@ export default function HomePage() {
 
   const handleLunchSelection = (day: number, recipe: CoreRecipe) => {
     setSelectedLunches(prev => ({ ...prev, [day]: recipe }));
-    setShoppingList(null); // Clear shopping list if selection changes
-    setNutritionalReport(null); // Clear nutritional report if selection changes
+    setShoppingList(null); 
+    setNutritionalReport(null); 
   };
 
   const handleGenerateShoppingList = async () => {
@@ -289,17 +308,17 @@ export default function HomePage() {
       <section className="text-center py-8">
         <div className="relative w-full h-64 md:h-80 rounded-lg overflow-hidden shadow-2xl mb-8">
           <Image 
-            src="https://placehold.co/1200x400.png"
+            src={heroImageDataUri || "https://placehold.co/1200x400.png"}
             alt="Variedad de platos de almuerzo chilenos y latinos"
             layout="fill"
             objectFit="cover"
             priority
-            data-ai-hint="latin american food lunch"
-            className="animate-pulse-subtle"
+            data-ai-hint={heroImageDataUri ? undefined : "latin american food lunch"}
+            className={!heroImageDataUri ? "animate-pulse-subtle" : ""}
           />
           <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center p-4">
             <h1 className="text-4xl md:text-5xl font-headline text-primary-foreground mb-4 drop-shadow-lg">
-              Bienvenido a MySmart Menu
+              Bienvenido a My Smart Menu
             </h1>
             <p className="text-lg md:text-xl text-primary-foreground/90 max-w-2xl drop-shadow-md">
               Genera opciones de almuerzos variados. Crea tu lista de compras y revisa la información nutricional. ¡Cocina inteligente, come delicioso!
@@ -398,3 +417,4 @@ export default function HomePage() {
     </div>
   );
 }
+
