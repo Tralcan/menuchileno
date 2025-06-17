@@ -20,7 +20,7 @@ export default function RecipeDetailModal({ recipe, isOpen, onClose }: RecipeDet
       <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col p-0">
         <DialogHeader className="p-6 pb-0">
           <div className="relative h-64 w-full mb-4 rounded-t-md overflow-hidden">
-            <Image 
+            <Image
               src={`https://placehold.co/800x400.png?text=${encodeURIComponent(recipe.recipeName)}`}
               alt={recipe.recipeName}
               layout="fill"
@@ -34,8 +34,8 @@ export default function RecipeDetailModal({ recipe, isOpen, onClose }: RecipeDet
             <CalendarClock size={18} className="text-primary"/> Día {recipe.day} - {recipe.mealTitle}
           </DialogDescription>
         </DialogHeader>
-        
-        <ScrollArea className="flex-grow min-h-0"> {/* Added min-h-0 here */}
+
+        <ScrollArea className="flex-grow min-h-0 h-full"> {/* Added h-full */}
           <div className="space-y-6 p-6">
             <div>
               <h3 className="font-headline text-xl mb-2 flex items-center"><ListChecks size={20} className="mr-2 text-primary"/>Ingredientes:</h3>
@@ -50,11 +50,11 @@ export default function RecipeDetailModal({ recipe, isOpen, onClose }: RecipeDet
               <h3 className="font-headline text-xl mb-2 flex items-center"><UtensilsCrossed size={20} className="mr-2 text-primary"/>Instrucciones:</h3>
               <p className="text-sm whitespace-pre-line leading-relaxed bg-secondary/30 p-4 rounded-md">{recipe.instructions}</p>
             </div>
-            
+
             <div>
               <h3 className="font-headline text-xl mb-2 flex items-center"><Info size={20} className="mr-2 text-primary"/>Información Adicional:</h3>
               <p className="text-sm text-muted-foreground bg-secondary/30 p-4 rounded-md">
-                Esta receta está pensada para 4 personas y forma parte de un menú balanceado. 
+                Esta receta está pensada para 4 personas y forma parte de un menú balanceado.
                 Los valores nutricionales específicos pueden variar según los ingredientes exactos y las porciones.
               </p>
             </div>
