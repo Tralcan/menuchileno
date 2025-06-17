@@ -1,24 +1,23 @@
-import type { GenerateMenuOutput } from '@/ai/flows/generate-menu';
+import type { CoreRecipe } from '@/ai/flows/generate-menu';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import { UtensilsCrossed, CalendarDays, Zap } from "lucide-react";
-
-type Recipe = Extract<GenerateMenuOutput["menu"][number], { recipeName: string }>;
+import { UtensilsCrossed, CalendarDays } from "lucide-react";
 
 interface RecipeCardProps {
-  recipe: Recipe;
+  recipe: CoreRecipe;
+  dayNumber: number;
+  mealTitle: string;
   onViewDetails: () => void;
-  onSuggestReplacement?: () => void; // Optional for now
 }
 
-export default function RecipeCard({ recipe, onViewDetails, onSuggestReplacement }: RecipeCardProps) {
+export default function RecipeCard({ recipe, dayNumber, mealTitle, onViewDetails }: RecipeCardProps) {
   return (
-    <Card className="flex flex-col h-full shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden">
-      <CardHeader>
-        <div className="relative h-48 w-full mb-4 rounded-t-md overflow-hidden">
+    <Card className="flex flex-col h-full shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden w-full">
+      <CardHeader className="p-4">
+        <div className="relative h-40 w-full mb-3 rounded-t-md overflow-hidden group">
           <Image 
-            src={`https://placehold.co/600x400.png?${encodeURIComponent(recipe.recipeName)}`} 
+            src={`https://placehold.co/600x300.png?text=${encodeURIComponent(recipe.recipeName)}`} 
             alt={recipe.recipeName} 
             layout="fill" 
             objectFit="cover"
@@ -27,28 +26,22 @@ export default function RecipeCard({ recipe, onViewDetails, onSuggestReplacement
           />
            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
            <div className="absolute bottom-2 left-2 bg-primary text-primary-foreground px-2 py-1 text-xs rounded">
-              {recipe.meal}
+              {mealTitle}
             </div>
         </div>
-        <CardTitle className="font-headline text-xl leading-tight">{recipe.recipeName}</CardTitle>
-        <CardDescription className="flex items-center text-sm text-muted-foreground">
-          <CalendarDays size={16} className="mr-1.5" /> Día {recipe.day}
+        <CardTitle className="font-headline text-lg leading-tight">{recipe.recipeName}</CardTitle>
+        <CardDescription className="flex items-center text-xs text-muted-foreground">
+          <CalendarDays size={14} className="mr-1.5" /> Día {dayNumber}
         </CardDescription>
       </CardHeader>
-      <CardContent className="flex-grow">
+      <CardContent className="flex-grow p-4 pt-0">
         <p className="text-sm line-clamp-3">{recipe.instructions.substring(0,100)}...</p>
       </CardContent>
-      <CardFooter className="flex flex-col sm:flex-row justify-between gap-2 pt-4 border-t">
-        <Button onClick={onViewDetails} variant="outline" className="w-full sm:w-auto">
+      <CardFooter className="p-4 pt-2 border-t">
+        <Button onClick={onViewDetails} variant="outline" className="w-full" size="sm">
           <UtensilsCrossed size={16} className="mr-2" />
-          Ver Receta
+          Ver Receta Completa
         </Button>
-        {onSuggestReplacement && (
-          <Button onClick={onSuggestReplacement} variant="ghost" className="w-full sm:w-auto text-accent hover:text-accent/90">
-             <Zap size={16} className="mr-2" />
-            Sugerir Otra
-          </Button>
-        )}
       </CardFooter>
     </Card>
   );

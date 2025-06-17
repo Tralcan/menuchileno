@@ -36,7 +36,7 @@ export default function MenuForm({ onSubmit, isLoading }: MenuFormProps) {
         </div>
         <CardTitle className="font-headline text-3xl">¡Planifica tu Menú!</CardTitle>
         <CardDescription>
-          Ingresa la cantidad de días para generar un menú chileno balanceado y tu lista de compras.
+          Ingresa la cantidad de días para generar opciones de almuerzo y tu lista de compras personalizada.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -56,7 +56,7 @@ export default function MenuForm({ onSubmit, isLoading }: MenuFormProps) {
               )}
             />
             <Button type="submit" className="w-full bg-accent hover:bg-accent/90 text-accent-foreground" disabled={isLoading}>
-              {isLoading ? "Generando..." : "Generar Menú"}
+              {isLoading ? "Generando Opciones..." : "Generar Opciones de Menú"}
             </Button>
           </form>
         </Form>

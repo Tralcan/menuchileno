@@ -1,14 +1,12 @@
-import type { GenerateMenuOutput } from '@/ai/flows/generate-menu';
+import type { RecipeForModal } from '@/app/page';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { UtensilsCrossed, ListChecks, Info } from 'lucide-react';
-
-type Recipe = Extract<GenerateMenuOutput["menu"][number], { recipeName: string }>;
+import { UtensilsCrossed, ListChecks, Info, CalendarClock } from 'lucide-react';
 
 interface RecipeDetailModalProps {
-  recipe: Recipe | null;
+  recipe: RecipeForModal | null;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -22,17 +20,17 @@ export default function RecipeDetailModal({ recipe, isOpen, onClose }: RecipeDet
         <DialogHeader className="p-6 pb-0">
           <div className="relative h-64 w-full mb-4 rounded-t-md overflow-hidden">
             <Image 
-              src={`https://placehold.co/800x400.png?${encodeURIComponent(recipe.recipeName)}`}
+              src={`https://placehold.co/800x400.png?text=${encodeURIComponent(recipe.recipeName)}`}
               alt={recipe.recipeName}
               layout="fill"
               objectFit="cover"
-              data-ai-hint="chilean food"
+              data-ai-hint="chilean food plate"
             />
              <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
              <DialogTitle className="font-headline text-3xl absolute bottom-4 left-4 text-primary-foreground">{recipe.recipeName}</DialogTitle>
           </div>
-          <DialogDescription className="text-center sm:text-left">
-            Día {recipe.day} - {recipe.meal}
+          <DialogDescription className="text-center sm:text-left text-base text-muted-foreground flex items-center gap-2">
+            <CalendarClock size={18} className="text-primary"/> Día {recipe.day} - {recipe.mealTitle}
           </DialogDescription>
         </DialogHeader>
         
@@ -53,7 +51,7 @@ export default function RecipeDetailModal({ recipe, isOpen, onClose }: RecipeDet
             </div>
             
             <div>
-              <h3 className="font-headline text-xl mb-2 flex items-center"><Info size={20} className="mr-2 text-primary"/>Información Nutricional (Ejemplo):</h3>
+              <h3 className="font-headline text-xl mb-2 flex items-center"><Info size={20} className="mr-2 text-primary"/>Información Adicional:</h3>
               <p className="text-sm text-muted-foreground bg-secondary/30 p-4 rounded-md">
                 Esta receta está pensada para 4 personas y forma parte de un menú balanceado. 
                 Los valores nutricionales específicos pueden variar según los ingredientes exactos y las porciones.
@@ -62,7 +60,7 @@ export default function RecipeDetailModal({ recipe, isOpen, onClose }: RecipeDet
           </div>
         </ScrollArea>
 
-        <DialogFooter className="p-6 pt-0 border-t">
+        <DialogFooter className="p-6 pt-4 border-t">
           <Button onClick={onClose} variant="outline">Cerrar</Button>
         </DialogFooter>
       </DialogContent>

@@ -1,59 +1,89 @@
-import type { GenerateMenuOutput } from '@/ai/flows/generate-menu';
+import type { DailyMenu, CoreRecipe } from '@/ai/flows/generate-menu';
+import type { SelectedLunches, RecipeForModal } from '@/app/page';
 import RecipeCard from './recipe-card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { CalendarDays, Utensils } from 'lucide-react';
-
-type MenuData = GenerateMenuOutput["menu"];
-type Recipe = Extract<GenerateMenuOutput["menu"][number], { recipeName: string }>;
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { CalendarDays, Utensils, Soup, Salad } from 'lucide-react';
 
 interface MenuDisplayProps {
-  menuData: MenuData;
-  onViewRecipe: (recipe: Recipe) => void;
+  menuData: DailyMenu[];
+  selectedLunches: SelectedLunches;
+  onLunchSelect: (day: number, recipe: CoreRecipe) => void;
+  onViewRecipe: (recipe: CoreRecipe, day: number, mealTitle: string) => void;
 }
 
-export default function MenuDisplay({ menuData, onViewRecipe }: MenuDisplayProps) {
-  const groupedMenu = menuData.reduce((acc, meal) => {
-    const day = meal.day;
-    if (!acc[day]) {
-      acc[day] = [];
-    }
-    acc[day].push(meal as Recipe); // Cast as Recipe
-    return acc;
-  }, {} as Record<number, Recipe[]>);
+export default function MenuDisplay({ menuData, selectedLunches, onLunchSelect, onViewRecipe }: MenuDisplayProps) {
+  
+  const getMealTitle = (isSuggested: boolean): string => {
+    return isSuggested ? "Almuerzo Sugerido" : "Almuerzo Opcional";
+  };
 
   return (
     <section className="mt-12">
-      <h2 className="text-3xl font-headline mb-6 text-center text-primary flex items-center justify-center gap-2">
-        <Utensils size={32} /> Tu Menú Semanal
+      <h2 className="text-3xl font-headline mb-8 text-center text-primary flex items-center justify-center gap-2">
+        <Utensils size={32} /> Tus Opciones de Menú
       </h2>
-      {Object.keys(groupedMenu).length > 0 ? (
-        <Accordion type="multiple" defaultValue={Object.keys(groupedMenu).map(day => `day-${day}`)} className="w-full">
-          {Object.entries(groupedMenu).map(([day, meals]) => (
-            <AccordionItem value={`day-${day}`} key={day} className="mb-4 bg-card rounded-lg shadow-md overflow-hidden">
-              <AccordionTrigger className="px-6 py-4 text-xl font-headline hover:bg-secondary/50">
+      {menuData.length > 0 ? (
+        <Accordion type="multiple" defaultValue={menuData.map(dayMenu => `day-${dayMenu.day}`)} className="w-full space-y-4">
+          {menuData.map((dayMenu) => (
+            <AccordionItem value={`day-${dayMenu.day}`} key={dayMenu.day} className="bg-card rounded-lg shadow-md overflow-hidden border-none">
+              <AccordionTrigger className="px-6 py-4 text-xl font-headline hover:bg-secondary/50 rounded-t-lg">
                 <div className="flex items-center gap-2">
-                  <CalendarDays className="text-primary" /> Día {day}
+                  <CalendarDays className="text-primary" /> Día {dayMenu.day}
                 </div>
               </AccordionTrigger>
               <AccordionContent className="px-6 py-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {meals.map((meal, index) => (
-                     meal.recipeName ? ( // Check if recipeName exists
-                      <RecipeCard 
-                        key={`${day}-${index}-${meal.recipeName}`} 
-                        recipe={meal} 
-                        onViewDetails={() => onViewRecipe(meal)}
-                        // onSuggestReplacement={() => console.log("Suggest replacement for:", meal.recipeName)} // Placeholder
-                      />
-                    ) : null // Or some placeholder for meals without recipeName
-                  ))}
-                </div>
+                <RadioGroup 
+                  value={selectedLunches[dayMenu.day]?.recipeName || ""}
+                  onValueChange={(recipeName) => {
+                    const selectedRecipe = recipeName === dayMenu.suggestedLunch.recipeName 
+                                          ? dayMenu.suggestedLunch 
+                                          : dayMenu.optionalLunch;
+                    onLunchSelect(dayMenu.day, selectedRecipe);
+                  }}
+                  className="space-y-6"
+                >
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold flex items-center gap-2 text-accent">
+                      <Soup size={20} /> {getMealTitle(true)}
+                    </h3>
+                    <div className="flex items-start gap-3 p-4 border rounded-md bg-background hover:border-primary transition-all">
+                       <RadioGroupItem value={dayMenu.suggestedLunch.recipeName} id={`day-${dayMenu.day}-suggested`} className="mt-1"/>
+                       <Label htmlFor={`day-${dayMenu.day}-suggested`} className="flex-grow cursor-pointer">
+                          <RecipeCard 
+                            recipe={dayMenu.suggestedLunch}
+                            dayNumber={dayMenu.day}
+                            mealTitle={getMealTitle(true)}
+                            onViewDetails={() => onViewRecipe(dayMenu.suggestedLunch, dayMenu.day, getMealTitle(true))}
+                          />
+                       </Label>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                     <h3 className="text-lg font-semibold flex items-center gap-2 text-accent">
+                       <Salad size={20} /> {getMealTitle(false)}
+                     </h3>
+                     <div className="flex items-start gap-3 p-4 border rounded-md bg-background hover:border-primary transition-all">
+                        <RadioGroupItem value={dayMenu.optionalLunch.recipeName} id={`day-${dayMenu.day}-optional`} className="mt-1"/>
+                        <Label htmlFor={`day-${dayMenu.day}-optional`} className="flex-grow cursor-pointer">
+                          <RecipeCard 
+                            recipe={dayMenu.optionalLunch} 
+                            dayNumber={dayMenu.day}
+                            mealTitle={getMealTitle(false)}
+                            onViewDetails={() => onViewRecipe(dayMenu.optionalLunch, dayMenu.day, getMealTitle(false))}
+                          />
+                        </Label>
+                     </div>
+                  </div>
+                </RadioGroup>
               </AccordionContent>
             </AccordionItem>
           ))}
         </Accordion>
       ) : (
-        <p className="text-center text-muted-foreground">No hay menú para mostrar. Intenta generar uno.</p>
+        <p className="text-center text-muted-foreground">No hay opciones de menú para mostrar. Intenta generar algunas.</p>
       )}
     </section>
   );

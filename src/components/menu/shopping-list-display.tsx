@@ -14,8 +14,8 @@ export default function ShoppingListDisplay({ shoppingList }: ShoppingListDispla
           <div className="mx-auto bg-primary text-primary-foreground rounded-full p-3 w-fit mb-2">
             <ShoppingCart size={32} />
           </div>
-          <CardTitle className="font-headline text-3xl">Lista de Compras</CardTitle>
-          <CardDescription>Estos son los ingredientes que necesitarás para tu menú.</CardDescription>
+          <CardTitle className="font-headline text-3xl">Tu Lista de Compras</CardTitle>
+          <CardDescription>Estos son los ingredientes que necesitarás para los almuerzos seleccionados.</CardDescription>
         </CardHeader>
         <CardContent>
           {shoppingList.length > 0 ? (
@@ -30,7 +30,7 @@ export default function ShoppingListDisplay({ shoppingList }: ShoppingListDispla
               </ul>
             </ScrollArea>
           ) : (
-            <p className="text-center text-muted-foreground py-8">Tu lista de compras aparecerá aquí una vez que generes un menú.</p>
+            <p className="text-center text-muted-foreground py-8">Tu lista de compras aparecerá aquí una vez que selecciones tus almuerzos y generes la lista.</p>
           )}
         </CardContent>
       </Card>
