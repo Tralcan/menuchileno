@@ -5,7 +5,7 @@ import AppHeader from '@/components/layout/app-header';
 import AppFooter from '@/components/layout/app-footer';
 
 export const metadata: Metadata = {
-  title: 'MySmart Menu',
+  title: 'My Smart Menu',
   description: 'Generador inteligente de menú, lista de compras e información nutricional para planificar tus comidas.',
 };
 
