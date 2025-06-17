@@ -1,5 +1,5 @@
 
-import type { RecipeForModal } from '@/app/page';
+import type { RecipeForModal } from '@/app/page'; // RecipeForModal includes imageDataUri?
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
@@ -17,15 +17,16 @@ export default function RecipeDetailModal({ recipe, isOpen, onClose }: RecipeDet
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] grid grid-rows-[auto_1fr_auto] p-0">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] grid grid-rows-[auto_1fr_auto] p-0 overflow-hidden">
         <DialogHeader className="p-6 pb-0 row-start-1">
           <div className="relative h-64 w-full mb-4 rounded-t-md overflow-hidden">
             <Image
-              src={`https://placehold.co/800x400.png?text=${encodeURIComponent(recipe.recipeName)}`}
+              src={recipe.imageDataUri || `https://placehold.co/800x400.png?text=${encodeURIComponent(recipe.recipeName)}`}
               alt={recipe.recipeName}
               layout="fill"
               objectFit="cover"
-              data-ai-hint="chilean food plate"
+              data-ai-hint={!recipe.imageDataUri ? "chilean food plate" : undefined}
+              priority={false} // Dynamically loaded images are not priority
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
             <DialogTitle className="font-headline text-3xl absolute bottom-4 left-4 text-primary-foreground">{recipe.recipeName}</DialogTitle>

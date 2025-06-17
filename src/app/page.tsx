@@ -6,6 +6,7 @@ import type { GenerateMenuInput, GenerateMenuOutput, DailyMenu, CoreRecipe } fro
 import { generateMenu } from '@/ai/flows/generate-menu';
 import type { CreateShoppingListInput, CreateShoppingListOutput } from '@/ai/flows/create-shopping-list';
 import { createShoppingList } from '@/ai/flows/create-shopping-list';
+import { generateRecipeImage, type GenerateRecipeImageInput } from '@/ai/flows/generate-recipe-image-flow';
 import MenuForm from '@/components/menu/menu-form';
 import MenuDisplay from '@/components/menu/menu-display';
 import ShoppingListDisplay from '@/components/menu/shopping-list-display';
@@ -14,10 +15,10 @@ import LoadingSpinner from '@/components/ui/loading-spinner';
 import { Button } from '@/components/ui/button';
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Terminal, ShoppingCart } from "lucide-react";
+import { Terminal, ShoppingCart, Image as ImageIcon } from "lucide-react"; // Added ImageIcon for future use if needed
 import Image from 'next/image';
 
-export type RecipeForModal = CoreRecipe & { day: number; mealTitle: string; };
+export type RecipeForModal = CoreRecipe & { day: number; mealTitle: string; imageDataUri?: string };
 export type SelectedLunches = Record<number, CoreRecipe | null>;
 
 export default function HomePage() {
@@ -28,6 +29,7 @@ export default function HomePage() {
   const [selectedLunches, setSelectedLunches] = useState<SelectedLunches>({});
   const [shoppingList, setShoppingList] = useState<string[] | null>(null);
   const [selectedRecipeForModal, setSelectedRecipeForModal] = useState<RecipeForModal | null>(null);
+  const [loadingImages, setLoadingImages] = useState<Record<string, boolean>>({}); // Key: recipeName_day_mealType
   const { toast } = useToast();
 
   const handleMenuFormSubmit = async (values: GenerateMenuInput) => {
@@ -36,12 +38,12 @@ export default function HomePage() {
     setMenuData(null);
     setSelectedLunches({});
     setShoppingList(null);
+    setLoadingImages({});
 
     try {
       const result = await generateMenu({ numberOfDays: values.numberOfDays });
       if (result && result.menu) {
         setMenuData(result.menu);
-        // Initialize selectedLunches with suggested one for each day
         const initialSelections: SelectedLunches = {};
         result.menu.forEach(dayMenu => {
           initialSelections[dayMenu.day] = dayMenu.suggestedLunch;
@@ -49,10 +51,67 @@ export default function HomePage() {
         setSelectedLunches(initialSelections);
         toast({
           title: "¡Opciones de Menú Generadas!",
-          description: `Tu menú para ${values.numberOfDays} días con opciones de almuerzo está listo. Selecciona tus preferidos y luego genera la lista de compras.`,
+          description: `Tu menú para ${values.numberOfDays} días está listo. Las imágenes de los platos se cargarán en breve.`,
           variant: "default",
           duration: 7000,
         });
+
+        // Asynchronously generate images for each recipe
+        result.menu.forEach(dayMenu => {
+          const processRecipeImage = async (recipe: CoreRecipe, day: number, mealType: 'suggested' | 'optional') => {
+            const recipeKey = `${recipe.recipeName}_${day}_${mealType}`;
+            setLoadingImages(prev => ({ ...prev, [recipeKey]: true }));
+            try {
+              const imageResult = await generateRecipeImage({
+                recipeName: recipe.recipeName,
+                evocativeDescription: recipe.evocativeDescription,
+              });
+              if (imageResult && imageResult.imageDataUri) {
+                setMenuData(currentMenuData => {
+                  if (!currentMenuData) return null;
+                  return currentMenuData.map(dm => {
+                    if (dm.day === day) {
+                      let newSuggested = dm.suggestedLunch;
+                      let newOptional = dm.optionalLunch;
+                      if (mealType === 'suggested' && dm.suggestedLunch.recipeName === recipe.recipeName) {
+                        newSuggested = { ...dm.suggestedLunch, imageDataUri: imageResult.imageDataUri };
+                      } else if (mealType === 'optional' && dm.optionalLunch.recipeName === recipe.recipeName) {
+                        newOptional = { ...dm.optionalLunch, imageDataUri: imageResult.imageDataUri };
+                      }
+                      return { ...dm, suggestedLunch: newSuggested, optionalLunch: newOptional };
+                    }
+                    return dm;
+                  });
+                });
+                // Update selectedLunches if the generated image is for a currently selected lunch
+                setSelectedLunches(currentSelectedLunches => {
+                    const daySelection = currentSelectedLunches[day];
+                    if (daySelection && daySelection.recipeName === recipe.recipeName) {
+                        return {
+                            ...currentSelectedLunches,
+                            [day]: { ...daySelection, imageDataUri: imageResult.imageDataUri }
+                        };
+                    }
+                    return currentSelectedLunches;
+                });
+              }
+            } catch (imgErr) {
+              console.error(`Error generating image for ${recipe.recipeName} (${mealType}, day ${day}):`, imgErr);
+              toast({
+                title: "Error al generar imagen",
+                description: `No se pudo generar la imagen para ${recipe.recipeName}. Se usará una imagen de reemplazo.`,
+                variant: "destructive",
+                duration: 4000,
+              });
+            } finally {
+              setLoadingImages(prev => ({ ...prev, [recipeKey]: false }));
+            }
+          };
+
+          processRecipeImage(dayMenu.suggestedLunch, dayMenu.day, 'suggested');
+          processRecipeImage(dayMenu.optionalLunch, dayMenu.day, 'optional');
+        });
+
       } else {
         throw new Error("La respuesta de la IA para el menú no tiene el formato esperado.");
       }
@@ -89,7 +148,7 @@ export default function HomePage() {
     setShoppingList(null);
 
     const shoppingListInputItems: CreateShoppingListInput['menu'] = Object.values(selectedLunches)
-      .filter((recipe): recipe is CoreRecipe => recipe !== null) // Type guard and filter out nulls
+      .filter((recipe): recipe is CoreRecipe => recipe !== null) 
       .map(recipe => ({
         dishName: recipe.recipeName,
         ingredients: recipe.ingredients,
@@ -121,7 +180,7 @@ export default function HomePage() {
     } catch (err) {
       console.error("Error generating shopping list:", err);
       const errorMessage = err instanceof Error ? err.message : "Ocurrió un error desconocido al generar la lista de compras.";
-      setError(errorMessage); // Consider if a separate error state for shopping list is needed
+      setError(errorMessage); 
       toast({
         title: "Error al Generar Lista de Compras",
         description: errorMessage,
@@ -133,8 +192,19 @@ export default function HomePage() {
   };
 
   const handleViewRecipe = (recipe: CoreRecipe, day: number, mealTitle: string) => {
-    setSelectedRecipeForModal({ ...recipe, day, mealTitle });
+    // Ensure the latest imageDataUri from menuData is passed to the modal
+    const currentDayMenu = menuData?.find(dm => dm.day === day);
+    let recipeWithLatestImage = recipe;
+    if (currentDayMenu) {
+        if (currentDayMenu.suggestedLunch.recipeName === recipe.recipeName) {
+            recipeWithLatestImage = currentDayMenu.suggestedLunch;
+        } else if (currentDayMenu.optionalLunch.recipeName === recipe.recipeName) {
+            recipeWithLatestImage = currentDayMenu.optionalLunch;
+        }
+    }
+    setSelectedRecipeForModal({ ...recipeWithLatestImage, day, mealTitle });
   };
+  
 
   const handleCloseModal = () => {
     setSelectedRecipeForModal(null);
@@ -192,7 +262,8 @@ export default function HomePage() {
             menuData={menuData} 
             selectedLunches={selectedLunches}
             onLunchSelect={handleLunchSelection}
-            onViewRecipe={handleViewRecipe} 
+            onViewRecipe={handleViewRecipe}
+            loadingImages={loadingImages}
           />
           {canGenerateShoppingList && (
             <div className="text-center mt-8">

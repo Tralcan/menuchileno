@@ -26,6 +26,7 @@ const CoreRecipeSchema = z.object({
   ingredients: z.array(z.string()).describe('Lista de ingredientes para la receta.'),
   instructions: z.string().describe('Instrucciones para preparar la receta.'),
   evocativeDescription: z.string().describe('Un texto corto, poético/evocador para incitar a cocinar el plato.'),
+  imageDataUri: z.string().url().optional().describe('URI de datos de la imagen generada para el plato (opcional).'),
 });
 export type CoreRecipe = z.infer<typeof CoreRecipeSchema>;
 
@@ -51,7 +52,7 @@ const prompt = ai.definePrompt({
   output: {schema: GenerateMenuOutputSchema},
   prompt: `Eres un chef experto en crear menús balanceados y deliciosos, con conocimiento de gastronomía chilena, peruana y latinoamericana popular en Chile.
 
-Generarás un menú para {{numberOfDays}} días. Para cada día, debes proponer dos opciones de almuerzo: un "almuerzo sugerido" y un "almuerzo opcional". Todas las recetas deben ser adecuadas para 4 personas y deben incluir una mezcla de platos típicos chilenos, así como opciones básicas de comida peruana y latinoamericana que sean comunes y apreciadas en Chile.
+Generarás un menú para {{numberOfDays}} días. Para cada día, debes proponer dos opciones de almuerzo: un "almuerzo sugerido" y un "almuerzo opcional". Todas las recetas deben ser adecuadas para 4 personas y deben incluir una mezcla de platos típicos chilenos, así como opciones básicas de comida peruana y latinoamericana que sean comunes y apreciadas en Chile (por ejemplo, Lomo Saltado, Ají de Gallina, Ceviche simple, Sopa de Mariscos, etc.).
 
 Para cada receta (tanto sugerida como opcional), incluye:
 - recipeName: Nombre de la receta.
@@ -60,6 +61,7 @@ Para cada receta (tanto sugerida como opcional), incluye:
 - evocativeDescription: Un texto corto (1-2 frases), inspirador y "semi-poético" que invite a preparar y disfrutar el plato. Ejemplo: "Un clásico reconfortante que abraza el alma con cada bocado." o "Sabores vibrantes que te transportarán a una tarde soleada junto al mar."
 
 No incluyas desayunos ni cenas, solo las dos opciones de almuerzo por día.
+No incluyas el campo imageDataUri en tu respuesta JSON, se generará por separado.
 
 Devuelve el menú en formato JSON.
 
@@ -95,4 +97,3 @@ const generateMenuFlow = ai.defineFlow(
     return output!;
   }
 );
-

@@ -12,9 +12,10 @@ interface MenuDisplayProps {
   selectedLunches: SelectedLunches;
   onLunchSelect: (day: number, recipe: CoreRecipe) => void;
   onViewRecipe: (recipe: CoreRecipe, day: number, mealTitle: string) => void;
+  loadingImages: Record<string, boolean>;
 }
 
-export default function MenuDisplay({ menuData, selectedLunches, onLunchSelect, onViewRecipe }: MenuDisplayProps) {
+export default function MenuDisplay({ menuData, selectedLunches, onLunchSelect, onViewRecipe, loadingImages }: MenuDisplayProps) {
   
   const getMealTitle = (isSuggested: boolean): string => {
     return isSuggested ? "Sugerido" : "Opcional";
@@ -27,7 +28,10 @@ export default function MenuDisplay({ menuData, selectedLunches, onLunchSelect, 
       </h2>
       {menuData.length > 0 ? (
         <Accordion type="multiple" defaultValue={menuData.map(dayMenu => `day-${dayMenu.day}`)} className="w-full space-y-4">
-          {menuData.map((dayMenu) => (
+          {menuData.map((dayMenu) => {
+            const suggestedKey = `${dayMenu.suggestedLunch.recipeName}_${dayMenu.day}_suggested`;
+            const optionalKey = `${dayMenu.optionalLunch.recipeName}_${dayMenu.day}_optional`;
+            return (
             <AccordionItem value={`day-${dayMenu.day}`} key={dayMenu.day} className="bg-card rounded-lg shadow-md overflow-hidden border-none">
               <AccordionTrigger className="px-6 py-4 text-xl font-headline hover:bg-secondary/50 rounded-t-lg">
                 <div className="flex items-center gap-2">
@@ -43,7 +47,7 @@ export default function MenuDisplay({ menuData, selectedLunches, onLunchSelect, 
                                           : dayMenu.optionalLunch;
                     onLunchSelect(dayMenu.day, selectedRecipe);
                   }}
-                  className="space-y-0" // Removed space-y-6, will be handled by flex container
+                  className="space-y-0"
                 >
                   <div className="flex flex-col md:flex-row gap-6">
                     {/* Suggested Lunch Section */}
@@ -59,6 +63,7 @@ export default function MenuDisplay({ menuData, selectedLunches, onLunchSelect, 
                               dayNumber={dayMenu.day}
                               mealTitle={getMealTitle(true)}
                               onViewDetails={() => onViewRecipe(dayMenu.suggestedLunch, dayMenu.day, getMealTitle(true))}
+                              isLoadingImage={loadingImages[suggestedKey] || false}
                             />
                          </Label>
                       </div>
@@ -77,6 +82,7 @@ export default function MenuDisplay({ menuData, selectedLunches, onLunchSelect, 
                               dayNumber={dayMenu.day}
                               mealTitle={getMealTitle(false)}
                               onViewDetails={() => onViewRecipe(dayMenu.optionalLunch, dayMenu.day, getMealTitle(false))}
+                              isLoadingImage={loadingImages[optionalKey] || false}
                             />
                           </Label>
                        </div>
@@ -85,7 +91,8 @@ export default function MenuDisplay({ menuData, selectedLunches, onLunchSelect, 
                 </RadioGroup>
               </AccordionContent>
             </AccordionItem>
-          ))}
+          );
+        })}
         </Accordion>
       ) : (
         <p className="text-center text-muted-foreground">No hay opciones de menú para mostrar. Intenta generar algunas.</p>
@@ -93,4 +100,3 @@ export default function MenuDisplay({ menuData, selectedLunches, onLunchSelect, 
     </section>
   );
 }
-
