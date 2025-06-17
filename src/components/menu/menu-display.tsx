@@ -1,5 +1,6 @@
+
 import type { DailyMenu, CoreRecipe } from '@/ai/flows/generate-menu';
-import type { SelectedLunches, RecipeForModal } from '@/app/page';
+import type { SelectedLunches } from '@/app/page';
 import RecipeCard from './recipe-card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -16,7 +17,7 @@ interface MenuDisplayProps {
 export default function MenuDisplay({ menuData, selectedLunches, onLunchSelect, onViewRecipe }: MenuDisplayProps) {
   
   const getMealTitle = (isSuggested: boolean): string => {
-    return isSuggested ? "Almuerzo Sugerido" : "Almuerzo Opcional";
+    return isSuggested ? "Sugerido" : "Opcional";
   };
 
   return (
@@ -42,40 +43,44 @@ export default function MenuDisplay({ menuData, selectedLunches, onLunchSelect, 
                                           : dayMenu.optionalLunch;
                     onLunchSelect(dayMenu.day, selectedRecipe);
                   }}
-                  className="space-y-6"
+                  className="space-y-0" // Removed space-y-6, will be handled by flex container
                 >
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold flex items-center gap-2 text-accent">
-                      <Soup size={20} /> {getMealTitle(true)}
-                    </h3>
-                    <div className="flex items-start gap-3 p-4 border rounded-md bg-background hover:border-primary transition-all">
-                       <RadioGroupItem value={dayMenu.suggestedLunch.recipeName} id={`day-${dayMenu.day}-suggested`} className="mt-1"/>
-                       <Label htmlFor={`day-${dayMenu.day}-suggested`} className="flex-grow cursor-pointer">
-                          <RecipeCard 
-                            recipe={dayMenu.suggestedLunch}
-                            dayNumber={dayMenu.day}
-                            mealTitle={getMealTitle(true)}
-                            onViewDetails={() => onViewRecipe(dayMenu.suggestedLunch, dayMenu.day, getMealTitle(true))}
-                          />
-                       </Label>
+                  <div className="flex flex-col md:flex-row gap-6">
+                    {/* Suggested Lunch Section */}
+                    <div className="flex-1 space-y-3">
+                      <h3 className="text-lg font-semibold flex items-center gap-2 text-accent">
+                        <Soup size={20} /> {getMealTitle(true)}
+                      </h3>
+                      <div className="flex items-start gap-3 p-4 border rounded-md bg-background hover:border-primary transition-all h-full">
+                         <RadioGroupItem value={dayMenu.suggestedLunch.recipeName} id={`day-${dayMenu.day}-suggested`} className="mt-1"/>
+                         <Label htmlFor={`day-${dayMenu.day}-suggested`} className="flex-grow cursor-pointer">
+                            <RecipeCard 
+                              recipe={dayMenu.suggestedLunch}
+                              dayNumber={dayMenu.day}
+                              mealTitle={getMealTitle(true)}
+                              onViewDetails={() => onViewRecipe(dayMenu.suggestedLunch, dayMenu.day, getMealTitle(true))}
+                            />
+                         </Label>
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="space-y-4">
-                     <h3 className="text-lg font-semibold flex items-center gap-2 text-accent">
-                       <Salad size={20} /> {getMealTitle(false)}
-                     </h3>
-                     <div className="flex items-start gap-3 p-4 border rounded-md bg-background hover:border-primary transition-all">
-                        <RadioGroupItem value={dayMenu.optionalLunch.recipeName} id={`day-${dayMenu.day}-optional`} className="mt-1"/>
-                        <Label htmlFor={`day-${dayMenu.day}-optional`} className="flex-grow cursor-pointer">
-                          <RecipeCard 
-                            recipe={dayMenu.optionalLunch} 
-                            dayNumber={dayMenu.day}
-                            mealTitle={getMealTitle(false)}
-                            onViewDetails={() => onViewRecipe(dayMenu.optionalLunch, dayMenu.day, getMealTitle(false))}
-                          />
-                        </Label>
-                     </div>
+                    {/* Optional Lunch Section */}
+                    <div className="flex-1 space-y-3">
+                       <h3 className="text-lg font-semibold flex items-center gap-2 text-accent">
+                         <Salad size={20} /> {getMealTitle(false)}
+                       </h3>
+                       <div className="flex items-start gap-3 p-4 border rounded-md bg-background hover:border-primary transition-all h-full">
+                          <RadioGroupItem value={dayMenu.optionalLunch.recipeName} id={`day-${dayMenu.day}-optional`} className="mt-1"/>
+                          <Label htmlFor={`day-${dayMenu.day}-optional`} className="flex-grow cursor-pointer">
+                            <RecipeCard 
+                              recipe={dayMenu.optionalLunch} 
+                              dayNumber={dayMenu.day}
+                              mealTitle={getMealTitle(false)}
+                              onViewDetails={() => onViewRecipe(dayMenu.optionalLunch, dayMenu.day, getMealTitle(false))}
+                            />
+                          </Label>
+                       </div>
+                    </div>
                   </div>
                 </RadioGroup>
               </AccordionContent>
@@ -88,3 +93,4 @@ export default function MenuDisplay({ menuData, selectedLunches, onLunchSelect, 
     </section>
   );
 }
+
