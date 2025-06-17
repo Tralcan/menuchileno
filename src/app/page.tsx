@@ -352,8 +352,7 @@ export default function HomePage() {
                 onClick={handleGenerateNutritionalInfo} 
                 disabled={isGeneratingNutrition || isGeneratingMenu || isGeneratingList}
                 size="lg"
-                variant="outline"
-                className="border-primary text-primary hover:bg-primary/10"
+                className="bg-accent hover:bg-accent/90 text-accent-foreground"
               >
                 <ClipboardList className="mr-2 h-5 w-5" />
                 {isGeneratingNutrition ? "Analizando Nutrición..." : "Información Nutricional"}
