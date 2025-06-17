@@ -17,7 +17,7 @@ export default function RecipeDetailModal({ recipe, isOpen, onClose }: RecipeDet
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col p-0 overflow-hidden">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col p-0">
         <DialogHeader className="p-6 pb-0 shrink-0">
           <div className="relative h-64 w-full mb-4 rounded-t-md overflow-hidden">
             <Image
@@ -36,7 +36,7 @@ export default function RecipeDetailModal({ recipe, isOpen, onClose }: RecipeDet
         </DialogHeader>
 
         <ScrollArea className="flex-1 min-h-0">
-          <div className="p-6 space-y-6"> {/* Content padding is here */}
+          <div className="p-6 space-y-6">
             <div>
               <h3 className="font-headline text-xl mb-2 flex items-center"><ListChecks size={20} className="mr-2 text-primary"/>Ingredientes:</h3>
               <ul className="list-disc list-inside space-y-1 text-sm bg-secondary/30 p-4 rounded-md columns-1 md:columns-2">
@@ -68,4 +68,3 @@ export default function RecipeDetailModal({ recipe, isOpen, onClose }: RecipeDet
     </Dialog>
   );
 }
-
