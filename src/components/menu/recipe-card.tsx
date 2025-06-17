@@ -1,3 +1,4 @@
+
 import type { CoreRecipe } from '@/ai/flows/generate-menu';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -35,7 +36,7 @@ export default function RecipeCard({ recipe, dayNumber, mealTitle, onViewDetails
         </CardDescription>
       </CardHeader>
       <CardContent className="flex-grow p-4 pt-0">
-        <p className="text-sm line-clamp-3">{recipe.instructions.substring(0,100)}...</p>
+        <p className="text-sm line-clamp-3 italic text-muted-foreground/90">{recipe.evocativeDescription}</p>
       </CardContent>
       <CardFooter className="p-4 pt-2 border-t">
         <Button onClick={onViewDetails} variant="outline" className="w-full" size="sm">
@@ -46,3 +47,4 @@ export default function RecipeCard({ recipe, dayNumber, mealTitle, onViewDetails
     </Card>
   );
 }
+

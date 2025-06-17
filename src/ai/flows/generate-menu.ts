@@ -25,6 +25,7 @@ const CoreRecipeSchema = z.object({
   recipeName: z.string().describe('Nombre de la receta.'),
   ingredients: z.array(z.string()).describe('Lista de ingredientes para la receta.'),
   instructions: z.string().describe('Instrucciones para preparar la receta.'),
+  evocativeDescription: z.string().describe('Un texto corto, poético/evocador para incitar a cocinar el plato.'),
 });
 export type CoreRecipe = z.infer<typeof CoreRecipeSchema>;
 
@@ -52,6 +53,12 @@ const prompt = ai.definePrompt({
 
 Generarás un menú para {{numberOfDays}} días. Para cada día, debes proponer dos opciones de almuerzo: un "almuerzo sugerido" y un "almuerzo opcional". Todas las recetas deben ser adecuadas para 4 personas y deben incluir una mezcla de platos típicos chilenos, así como opciones básicas de comida peruana y latinoamericana que sean comunes y apreciadas en Chile.
 
+Para cada receta (tanto sugerida como opcional), incluye:
+- recipeName: Nombre de la receta.
+- ingredients: Lista de ingredientes.
+- instructions: Instrucciones detalladas de preparación.
+- evocativeDescription: Un texto corto (1-2 frases), inspirador y "semi-poético" que invite a preparar y disfrutar el plato. Ejemplo: "Un clásico reconfortante que abraza el alma con cada bocado." o "Sabores vibrantes que te transportarán a una tarde soleada junto al mar."
+
 No incluyas desayunos ni cenas, solo las dos opciones de almuerzo por día.
 
 Devuelve el menú en formato JSON.
@@ -62,12 +69,14 @@ Ejemplo de cómo debería ser la estructura para un día:
   "suggestedLunch": {
     "recipeName": "Pastel de Choclo",
     "ingredients": ["Carne Molida", "Pollo", "Cebolla", "Choclo", "Leche", "Albahaca", "Huevo Duro", "Aceitunas"],
-    "instructions": "Preparar un pino con carne molida, pollo y cebolla. Aparte, moler choclo con leche y albahaca. En una fuente para horno, colocar el pino, huevo duro y aceitunas. Cubrir con la mezcla de choclo. Hornear hasta dorar."
+    "instructions": "Preparar un pino con carne molida, pollo y cebolla. Aparte, moler choclo con leche y albahaca. En una fuente para horno, colocar el pino, huevo duro y aceitunas. Cubrir con la mezcla de choclo. Hornear hasta dorar.",
+    "evocativeDescription": "Un abrazo de la tierra chilena, donde el dulzor del choclo se encuentra con el sabor profundo del pino."
   },
   "optionalLunch": {
     "recipeName": "Lentejas con Arroz",
     "ingredients": ["Lentejas", "Arroz", "Cebolla", "Zanahoria", "Zapallo", "Longaniza (opcional)"],
-    "instructions": "Remojar las lentejas. Cocinarlas con cebolla, zanahoria y zapallo picados. Agregar longaniza si se desea. Servir con arroz graneado."
+    "instructions": "Remojar las lentejas. Cocinarlas con cebolla, zanahoria y zapallo picados. Agregar longaniza si se desea. Servir con arroz graneado.",
+    "evocativeDescription": "Un plato humilde y poderoso, perfecto para recargar energías con el sabor de casa."
   }
 }
 
@@ -86,3 +95,4 @@ const generateMenuFlow = ai.defineFlow(
     return output!;
   }
 );
+
