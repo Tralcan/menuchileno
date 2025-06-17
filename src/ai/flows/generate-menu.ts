@@ -26,7 +26,7 @@ const CoreRecipeSchema = z.object({
   ingredients: z.array(z.string()).describe('Lista de ingredientes para la receta.'),
   instructions: z.string().describe('Instrucciones para preparar la receta.'),
   evocativeDescription: z.string().describe('Un texto corto, poético/evocador para incitar a cocinar el plato.'),
-  imageDataUri: z.string().url().optional().describe('URI de datos de la imagen generada para el plato (opcional).'),
+  imageDataUri: z.string().optional().describe('URI de datos de la imagen generada para el plato (opcional).'),
 });
 export type CoreRecipe = z.infer<typeof CoreRecipeSchema>;
 
@@ -97,3 +97,4 @@ const generateMenuFlow = ai.defineFlow(
     return output!;
   }
 );
+
