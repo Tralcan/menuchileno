@@ -39,6 +39,7 @@ export default function HomePage() {
   const [loadingImages, setLoadingImages] = useState<Record<string, boolean>>({}); 
   const [heroImageDataUri, setHeroImageDataUri] = useState<string | null>(null);
   const [isCoffeeModalOpen, setIsCoffeeModalOpen] = useState(false);
+  const [currentNumberOfPeople, setCurrentNumberOfPeople] = useState<number>(4);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -66,9 +67,15 @@ export default function HomePage() {
     setShoppingList(null);
     setNutritionalReport(null);
     setLoadingImages({});
+    setCurrentNumberOfPeople(values.numberOfPeople || 4);
+
 
     try {
-      const result = await generateMenu({ numberOfDays: values.numberOfDays });
+      const result = await generateMenu({ 
+        numberOfDays: values.numberOfDays, 
+        numberOfPeople: values.numberOfPeople || 4 
+      });
+
       if (result && result.menu) {
         setMenuData(result.menu);
         const initialSelections: SelectedLunches = {};
@@ -78,7 +85,7 @@ export default function HomePage() {
         setSelectedLunches(initialSelections);
         toast({
           title: "¡Opciones de Menú Generadas!",
-          description: `Tu menú para ${values.numberOfDays} días está listo. Las imágenes de los platos se cargarán en breve.`,
+          description: `Tu menú para ${values.numberOfDays} días y ${values.numberOfPeople || 4} personas está listo. Las imágenes de los platos se cargarán en breve.`,
           variant: "default",
           duration: 7000,
         });
@@ -255,7 +262,10 @@ export default function HomePage() {
     setShoppingList(null);
 
     try {
-      const result = await generateNutritionalInfo({ selectedRecipes: nutritionalInputItems });
+      const result = await generateNutritionalInfo({ 
+        selectedRecipes: nutritionalInputItems,
+        numberOfPeople: currentNumberOfPeople 
+      });
       if (result && result.nutritionalReport) {
         setNutritionalReport(result.nutritionalReport);
         toast({
@@ -405,7 +415,7 @@ export default function HomePage() {
       )}
 
       {nutritionalReport && !isGeneratingNutrition && !isGeneratingList && (
-          <NutritionalInfoDisplay nutritionalReport={nutritionalReport} />
+          <NutritionalInfoDisplay nutritionalReport={nutritionalReport} numberOfPeople={currentNumberOfPeople} />
       )}
 
       {selectedRecipeForModal && (

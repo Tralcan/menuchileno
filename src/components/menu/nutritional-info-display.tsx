@@ -1,14 +1,16 @@
+
 // src/components/menu/nutritional-info-display.tsx
 import type { RecipeNutritionalInfo } from '@/ai/flows/generate-nutritional-info-flow';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { ClipboardList, Activity, Percent, Flame, Wheat, Drumstick, Leaf, Info } from 'lucide-react';
+import { ClipboardList, Activity, Percent, Flame, Wheat, Drumstick, Leaf, Info, Users } from 'lucide-react';
 
 interface NutritionalInfoDisplayProps {
   nutritionalReport: RecipeNutritionalInfo[];
+  numberOfPeople: number;
 }
 
-export default function NutritionalInfoDisplay({ nutritionalReport }: NutritionalInfoDisplayProps) {
+export default function NutritionalInfoDisplay({ nutritionalReport, numberOfPeople }: NutritionalInfoDisplayProps) {
   if (!nutritionalReport || nutritionalReport.length === 0) {
     return (
       <Card className="mt-12 shadow-xl">
@@ -31,7 +33,9 @@ export default function NutritionalInfoDisplay({ nutritionalReport }: Nutritiona
             <Activity size={32} />
           </div>
           <CardTitle className="font-headline text-3xl">Análisis Nutricional Detallado</CardTitle>
-          <CardDescription>Información nutricional estimada para los almuerzos seleccionados (para 4 personas por plato).</CardDescription>
+          <CardDescription className="flex items-center justify-center gap-1.5">
+            <Users size={16} /> Información nutricional estimada para los almuerzos seleccionados (para {numberOfPeople} {numberOfPeople === 1 ? 'persona' : 'personas'} por plato).
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <Accordion type="multiple" defaultValue={nutritionalReport.map(report => report.recipeName)} className="w-full space-y-4">

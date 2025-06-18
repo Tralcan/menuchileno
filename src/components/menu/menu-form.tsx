@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as z from "zod";
@@ -7,10 +8,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChefHat } from "lucide-react";
+import { ChefHat, Users } from "lucide-react";
 
 const formSchema = z.object({
   numberOfDays: z.coerce.number().min(1, "Debe ser al menos 1 día").max(30, "Máximo 30 días"),
+  numberOfPeople: z.coerce.number().min(1, "Debe ser al menos 1 persona").max(16, "Máximo 16 personas"),
 });
 
 type MenuFormValues = z.infer<typeof formSchema>;
@@ -25,6 +27,7 @@ export default function MenuForm({ onSubmit, isLoading }: MenuFormProps) {
     resolver: zodResolver(formSchema),
     defaultValues: {
       numberOfDays: 7,
+      numberOfPeople: 4,
     },
   });
 
@@ -36,7 +39,7 @@ export default function MenuForm({ onSubmit, isLoading }: MenuFormProps) {
         </div>
         <CardTitle className="font-headline text-3xl">¡Planifica tu Menú!</CardTitle>
         <CardDescription>
-          Ingresa la cantidad de días para generar opciones de almuerzo y tu lista de compras personalizada.
+          Ingresa los detalles para generar opciones de almuerzo y tu lista de compras personalizada.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -50,6 +53,21 @@ export default function MenuForm({ onSubmit, isLoading }: MenuFormProps) {
                   <FormLabel>Número de Días</FormLabel>
                   <FormControl>
                     <Input type="number" placeholder="Ej: 7" {...field} disabled={isLoading} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+             <FormField
+              control={form.control}
+              name="numberOfPeople"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-1.5">
+                    <Users size={16} /> Número de Personas
+                  </FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="Ej: 4" {...field} disabled={isLoading} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

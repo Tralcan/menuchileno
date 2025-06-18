@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { UtensilsCrossed, ListChecks, Info, CalendarClock, Sparkles } from 'lucide-react';
+import { UtensilsCrossed, ListChecks, Info, CalendarClock, Sparkles, Users } from 'lucide-react';
 
 interface RecipeDetailModalProps {
   recipe: RecipeForModal | null;
@@ -61,9 +61,8 @@ export default function RecipeDetailModal({ recipe, isOpen, onClose }: RecipeDet
             
             <div>
               <h3 className="font-headline text-xl mb-2 flex items-center"><Info size={20} className="mr-2 text-primary"/>Información Adicional:</h3>
-              <p className="text-sm text-muted-foreground bg-secondary/30 p-4 rounded-md">
-                Esta receta está pensada para 4 personas y forma parte de un menú balanceado.
-                Los valores nutricionales específicos pueden variar según los ingredientes exactos y las porciones.
+              <p className="text-sm text-muted-foreground bg-secondary/30 p-4 rounded-md flex items-center gap-1.5">
+                <Users size={16}/> Esta receta está dimensionada para el número de personas especificado al generar el menú. Los valores nutricionales específicos pueden variar.
               </p>
             </div>
           </div>
