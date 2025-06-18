@@ -245,6 +245,7 @@ export default function HomePage() {
       .map(recipe => ({
         recipeName: recipe.recipeName,
         ingredients: recipe.ingredients,
+        numberOfOriginalServings: currentNumberOfPeople, // Pass the number of people the recipe was made for
       }));
 
     if (nutritionalInputItems.length === 0) {
@@ -264,13 +265,13 @@ export default function HomePage() {
     try {
       const result = await generateNutritionalInfo({ 
         selectedRecipes: nutritionalInputItems,
-        numberOfPeople: currentNumberOfPeople 
+        // numberOfPeople is no longer needed here as it's per recipe in nutritionalInputItems
       });
       if (result && result.nutritionalReport) {
         setNutritionalReport(result.nutritionalReport);
         toast({
           title: "¡Información Nutricional Generada!",
-          description: "El análisis nutricional para tus selecciones está listo.",
+          description: "El análisis nutricional por persona para tus selecciones está listo.",
           variant: "default",
           duration: 5000,
         });
@@ -415,7 +416,7 @@ export default function HomePage() {
       )}
 
       {nutritionalReport && !isGeneratingNutrition && !isGeneratingList && (
-          <NutritionalInfoDisplay nutritionalReport={nutritionalReport} numberOfPeople={currentNumberOfPeople} />
+          <NutritionalInfoDisplay nutritionalReport={nutritionalReport} />
       )}
 
       {selectedRecipeForModal && (
