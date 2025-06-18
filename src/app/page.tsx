@@ -15,13 +15,13 @@ import MenuDisplay from '@/components/menu/menu-display';
 import ShoppingListDisplay from '@/components/menu/shopping-list-display';
 import NutritionalInfoDisplay from '@/components/menu/nutritional-info-display';
 import RecipeDetailModal from '@/components/menu/recipe-detail-modal';
+import CoffeeModal from '@/components/menu/coffee-modal'; // Nuevo modal
 import LoadingSpinner from '@/components/ui/loading-spinner';
 import { Button } from '@/components/ui/button';
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Terminal, ShoppingCart, ClipboardList } from "lucide-react";
+import { Terminal, ShoppingCart, ClipboardList, Heart } from "lucide-react"; // Importar Heart
 import Image from 'next/image';
-import Script from 'next/script';
 
 export type RecipeForModal = CoreRecipe & { day: number; mealTitle: string; imageDataUri?: string };
 export type SelectedLunches = Record<number, CoreRecipe | null>;
@@ -36,8 +36,9 @@ export default function HomePage() {
   const [shoppingList, setShoppingList] = useState<string[] | null>(null);
   const [nutritionalReport, setNutritionalReport] = useState<RecipeNutritionalInfo[] | null>(null);
   const [selectedRecipeForModal, setSelectedRecipeForModal] = useState<RecipeForModal | null>(null);
-  const [loadingImages, setLoadingImages] = useState<Record<string, boolean>>({}); // Key: recipeName_day_mealType
+  const [loadingImages, setLoadingImages] = useState<Record<string, boolean>>({}); 
   const [heroImageDataUri, setHeroImageDataUri] = useState<string | null>(null);
+  const [isCoffeeModalOpen, setIsCoffeeModalOpen] = useState(false); // Estado para el modal de café
   const { toast } = useToast();
 
   useEffect(() => {
@@ -52,7 +53,6 @@ export default function HomePage() {
         }
       } catch (err) {
         console.error("Error generating hero image:", err);
-        // Fallback to placeholder is implicit as heroImageDataUri remains null
       }
     };
     generateHeroImage();
@@ -281,7 +281,6 @@ export default function HomePage() {
     }
   };
 
-
   const handleViewRecipe = (recipe: CoreRecipe, day: number, mealTitle: string) => {
     const currentDayMenu = menuData?.find(dm => dm.day === day);
     let recipeWithLatestImage = recipe;
@@ -295,13 +294,19 @@ export default function HomePage() {
     setSelectedRecipeForModal({ ...recipeWithLatestImage, day, mealTitle });
   };
   
-
   const handleCloseModal = () => {
     setSelectedRecipeForModal(null);
   };
+
+  const handleOpenCoffeeModal = () => {
+    setIsCoffeeModalOpen(true);
+  };
+
+  const handleCloseCoffeeModal = () => {
+    setIsCoffeeModalOpen(false);
+  };
   
   const canGenerateAdditionalInfo = menuData && Object.values(selectedLunches).some(lunch => lunch !== null);
-
 
   return (
     <div className="space-y-12">
@@ -380,20 +385,15 @@ export default function HomePage() {
             </div>
           )}
           {canGenerateAdditionalInfo && (
-            <div className="text-center mt-8">
-              <Script
-                src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js"
-                data-name="bmc-button"
-                data-slug="6hxrhhkvhs2"
-                data-color="#FFDD00"
-                data-emoji=""
-                data-font="Cookie"
-                data-text="Buy me a coffee"
-                data-outline-color="#000000"
-                data-font-color="#000000"
-                data-coffee-color="#ffffff"
-                strategy="afterInteractive" 
-              />
+            <div className="text-center mt-6"> 
+              <Button 
+                onClick={handleOpenCoffeeModal}
+                size="lg"
+                className="bg-accent hover:bg-accent/90 text-accent-foreground"
+              >
+                <Heart className="mr-2 h-5 w-5" />
+                Apóyame con tu aporte
+              </Button>
             </div>
           )}
         </>
@@ -414,7 +414,12 @@ export default function HomePage() {
           onClose={handleCloseModal}
         />
       )}
+      {isCoffeeModalOpen && (
+        <CoffeeModal
+          isOpen={isCoffeeModalOpen}
+          onClose={handleCloseCoffeeModal}
+        />
+      )}
     </div>
   );
 }
-
