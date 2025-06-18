@@ -3,7 +3,7 @@
 'use server';
 /**
  * @fileOverview Generates a Chilean menu with suggested and optional lunches for a specified number of days and people,
- * including Peruvian and Latin American dishes popular in Chile.
+ * including Peruvian and Latin American dishes popular in Chile, as well as European dishes adapted to Chilean taste.
  *
  * - generateMenu - A function that generates the menu.
  * - GenerateMenuInput - The input type for the generateMenu function.
@@ -57,11 +57,11 @@ const prompt = ai.definePrompt({
   input: {schema: GenerateMenuInputSchema},
   output: {schema: GenerateMenuOutputSchema},
   config: {
-    temperature: 0.9, // Aumenta la creatividad y variedad
+    temperature: 0.9, 
   },
   prompt: `Eres un chef experto y CREATIVO. Tu misión es diseñar menús que sean balanceados, deliciosos y, fundamentalmente, MUY VARIADOS Y POCO REPETITIVOS.
-Sorpréndeme con tu conocimiento profundo de la gastronomía chilena, peruana y una amplia gama de joyas culinarias latinoamericanas, incluyendo platos caseros y tesoros menos conocidos pero igualmente exquisitos que se disfrutan en Chile.
-Para asegurar la variedad, incluye diferentes tipos de proteínas (vacuno, cerdo, pollo, pescado, mariscos, legumbres, huevos), diversos métodos de cocción (guisos, horneados, salteados, a la parrilla, al vapor), y considera platos de distintas regiones de Chile y de otros países latinoamericanos que sean populares o que podrían serlo.
+Sorpréndeme con tu conocimiento profundo de la gastronomía chilena, peruana, una amplia gama de joyas culinarias latinoamericanas, y también platos de origen europeo que son comúnmente disfrutados y adaptados en Chile. Incluye platos caseros y tesoros menos conocidos pero igualmente exquisitos.
+Para asegurar la variedad, incluye diferentes tipos de proteínas (vacuno, cerdo, pollo, pescado, mariscos, legumbres, huevos), diversos métodos de cocción (guisos, horneados, salteados, a la parrilla, al vapor), y considera platos de distintas regiones de Chile y de otros países latinoamericanos y europeos que sean populares o que podrían serlo en el contexto chileno.
 Evita sugerir platos que sean demasiado similares entre sí en días consecutivos o dentro de la misma semana.
 
 Generarás un menú para {{numberOfDays}} días. Cada receta del menú debe ser para {{numberOfPeople}} personas.
