@@ -5,7 +5,7 @@ import RecipeCard from './recipe-card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { CalendarDays, Utensils, Soup, Salad } from 'lucide-react';
+import { CalendarDays, Utensils } from 'lucide-react';
 
 interface MenuDisplayProps {
   menuData: DailyMenu[];
@@ -52,9 +52,7 @@ export default function MenuDisplay({ menuData, selectedLunches, onLunchSelect, 
                   <div className="flex flex-col md:flex-row gap-6">
                     {/* Suggested Lunch Section */}
                     <div className="flex-1 space-y-3">
-                      <h3 className="text-lg font-semibold flex items-center gap-2 text-accent">
-                        <Soup size={20} /> {getMealTitle(true)}
-                      </h3>
+                      {/* Título eliminado */}
                       <div className="flex items-start gap-3 p-4 border rounded-md bg-background hover:border-primary transition-all h-full">
                          <RadioGroupItem value={dayMenu.suggestedLunch.recipeName} id={`day-${dayMenu.day}-suggested`} className="mt-1"/>
                          <Label htmlFor={`day-${dayMenu.day}-suggested`} className="flex-grow cursor-pointer">
@@ -71,9 +69,7 @@ export default function MenuDisplay({ menuData, selectedLunches, onLunchSelect, 
 
                     {/* Optional Lunch Section */}
                     <div className="flex-1 space-y-3">
-                       <h3 className="text-lg font-semibold flex items-center gap-2 text-accent">
-                         <Salad size={20} /> {getMealTitle(false)}
-                       </h3>
+                       {/* Título eliminado */}
                        <div className="flex items-start gap-3 p-4 border rounded-md bg-background hover:border-primary transition-all h-full">
                           <RadioGroupItem value={dayMenu.optionalLunch.recipeName} id={`day-${dayMenu.day}-optional`} className="mt-1"/>
                           <Label htmlFor={`day-${dayMenu.day}-optional`} className="flex-grow cursor-pointer">
