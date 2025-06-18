@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react'; // Explicit React import
 import type { GenerateMenuInput, GenerateMenuOutput, DailyMenu, CoreRecipe } from '@/ai/flows/generate-menu';
 import { generateMenu } from '@/ai/flows/generate-menu';
 import type { CreateShoppingListInput, CreateShoppingListOutput } from '@/ai/flows/create-shopping-list';
@@ -9,6 +9,8 @@ import { createShoppingList } from '@/ai/flows/create-shopping-list';
 import { generateRecipeImage, type GenerateRecipeImageInput } from '@/ai/flows/generate-recipe-image-flow';
 import type { GenerateNutritionalInfoInput, GenerateNutritionalInfoOutput, RecipeNutritionalInfo, NutritionalRecipeInput } from '@/ai/flows/generate-nutritional-info-flow';
 import { generateNutritionalInfo } from '@/ai/flows/generate-nutritional-info-flow';
+import { sendSelectedMenuEmail, type SendSelectedMenuEmailInput, type SelectedMenuItem } from '@/ai/flows/send-selected-menu-email-flow';
+
 
 import MenuForm from '@/components/menu/menu-form';
 import MenuDisplay from '@/components/menu/menu-display';
@@ -20,8 +22,12 @@ import LoadingSpinner from '@/components/ui/loading-spinner';
 import { Button } from '@/components/ui/button';
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Terminal, ShoppingCart, ClipboardList, Heart } from "lucide-react";
+import { Terminal, ShoppingCart, ClipboardList, Heart, Mail, Send, Loader2 } from "lucide-react";
 import Image from 'next/image';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+
 
 export type RecipeForModal = CoreRecipe & { day: number; mealTitle: string; imageDataUri?: string };
 export type SelectedLunches = Record<number, CoreRecipe | null>;
@@ -40,6 +46,11 @@ export default function HomePage() {
   const [heroImageDataUri, setHeroImageDataUri] = useState<string | null>(null);
   const [isCoffeeModalOpen, setIsCoffeeModalOpen] = useState(false);
   const [currentNumberOfPeople, setCurrentNumberOfPeople] = useState<number>(4);
+  
+  const [isSendMenuEmailDialogOpen, setIsSendMenuEmailDialogOpen] = React.useState(false);
+  const [menuRecipientEmail, setMenuRecipientEmail] = React.useState('');
+  const [isSendingMenuEmail, setIsSendingMenuEmail] = React.useState(false);
+  
   const { toast } = useToast();
 
   useEffect(() => {
@@ -180,7 +191,7 @@ export default function HomePage() {
     setIsGeneratingList(true);
     setError(null);
     setShoppingList(null);
-    setNutritionalReport(null);
+    // setNutritionalReport(null); // Keep nutritional report if already generated
 
 
     const shoppingListInputItems: CreateShoppingListInput['menu'] = Object.values(selectedLunches)
@@ -228,16 +239,19 @@ export default function HomePage() {
   };
 
   const handleGenerateNutritionalInfo = async () => {
-    if (!menuData || Object.values(selectedLunches).some(lunch => lunch === null) && Object.keys(selectedLunches).length !== menuData.length ) {
-         const unselectedDays = menuData.filter(dayMenu => !selectedLunches[dayMenu.day]).length;
-         if (unselectedDays > 0) {
-            toast({
-                title: "Selección Incompleta",
-                description: `Por favor, selecciona un almuerzo para cada día del menú antes de generar la información nutricional. Faltan ${unselectedDays} día(s).`,
-                variant: "destructive",
-            });
-            return;
-         }
+     if (!menuData) {
+      toast({ title: "Error", description: "Primero genera un menú.", variant: "destructive" });
+      return;
+    }
+    const selectedCount = Object.values(selectedLunches).filter(lunch => lunch !== null).length;
+    if (selectedCount < menuData.length) {
+      const unselectedDays = menuData.length - selectedCount;
+      toast({
+          title: "Selección Incompleta",
+          description: `Por favor, selecciona un almuerzo para cada día del menú antes de generar la información nutricional. Faltan ${unselectedDays} día(s).`,
+          variant: "destructive",
+      });
+      return;
     }
     
     const nutritionalInputItems: NutritionalRecipeInput[] = Object.values(selectedLunches)
@@ -245,7 +259,7 @@ export default function HomePage() {
       .map(recipe => ({
         recipeName: recipe.recipeName,
         ingredients: recipe.ingredients,
-        numberOfOriginalServings: currentNumberOfPeople, // Pass the number of people the recipe was made for
+        numberOfOriginalServings: currentNumberOfPeople,
       }));
 
     if (nutritionalInputItems.length === 0) {
@@ -260,12 +274,11 @@ export default function HomePage() {
     setIsGeneratingNutrition(true);
     setError(null);
     setNutritionalReport(null);
-    setShoppingList(null);
+    // setShoppingList(null); // Keep shopping list if already generated
 
     try {
       const result = await generateNutritionalInfo({ 
         selectedRecipes: nutritionalInputItems,
-        // numberOfPeople is no longer needed here as it's per recipe in nutritionalInputItems
       });
       if (result && result.nutritionalReport) {
         setNutritionalReport(result.nutritionalReport);
@@ -292,6 +305,54 @@ export default function HomePage() {
     }
   };
 
+  const handleSendSelectedMenuByEmail = async () => {
+    if (!menuRecipientEmail) {
+      toast({ title: "Correo Requerido", description: "Por favor, ingresa una dirección de correo electrónico.", variant: "destructive" });
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(menuRecipientEmail)) {
+      toast({ title: "Correo Inválido", description: "Por favor, ingresa una dirección de correo electrónico válida.", variant: "destructive" });
+      return;
+    }
+
+    const menuToEmail: SelectedMenuItem[] = Object.entries(selectedLunches)
+      .filter(([_, recipe]) => recipe !== null)
+      .map(([dayStr, recipe]) => {
+        const day = parseInt(dayStr, 10);
+        const coreRecipe = recipe as CoreRecipe;
+        return {
+          day,
+          recipeName: coreRecipe.recipeName,
+          ingredients: coreRecipe.ingredients,
+          instructions: coreRecipe.instructions,
+          evocativeDescription: coreRecipe.evocativeDescription,
+        };
+      })
+      .sort((a, b) => a.day - b.day);
+
+    if (menuToEmail.length === 0) {
+      toast({ title: "Menú Vacío", description: "No hay almuerzos seleccionados para enviar.", variant: "default" });
+      return;
+    }
+
+    setIsSendingMenuEmail(true);
+    try {
+      const result = await sendSelectedMenuEmail({ recipientEmail: menuRecipientEmail, selectedMenu: menuToEmail });
+      if (result.success) {
+        toast({ title: "¡Correo Enviado!", description: result.message, variant: "default" });
+        setIsSendMenuEmailDialogOpen(false);
+        setMenuRecipientEmail('');
+      } else {
+        toast({ title: "Error al Enviar Correo", description: result.message, variant: "destructive" });
+      }
+    } catch (error: any) {
+      toast({ title: "Error Inesperado", description: error.message || "Ocurrió un error al enviar el correo del menú.", variant: "destructive" });
+    } finally {
+      setIsSendingMenuEmail(false);
+    }
+  };
+
+
   const handleViewRecipe = (recipe: CoreRecipe, day: number, mealTitle: string) => {
     const currentDayMenu = menuData?.find(dm => dm.day === day);
     let recipeWithLatestImage = recipe;
@@ -317,7 +378,9 @@ export default function HomePage() {
     setIsCoffeeModalOpen(false);
   };
   
-  const canGenerateAdditionalInfo = menuData && Object.values(selectedLunches).some(lunch => lunch !== null);
+  const canGenerateAdditionalInfo = menuData && Object.values(selectedLunches).filter(l => l !== null).length > 0;
+  const allLunchesSelected = menuData && Object.values(selectedLunches).filter(l => l !== null).length === menuData.length;
+
 
   return (
     <div className="space-y-12">
@@ -344,19 +407,20 @@ export default function HomePage() {
         <MenuForm onSubmit={handleMenuFormSubmit} isLoading={isGeneratingMenu} />
       </section>
 
-      {(isGeneratingMenu || isGeneratingList || isGeneratingNutrition) && (
+      {(isGeneratingMenu || isGeneratingList || isGeneratingNutrition || isSendingMenuEmail) && (
         <div className="flex flex-col items-center justify-center space-y-4 p-8 text-center">
           <LoadingSpinner size={64} />
           <p className="text-xl font-semibold text-primary animate-pulse">
             {isGeneratingMenu && "Cocinando tus opciones de menú..."}
             {isGeneratingList && "Creando tu lista de compras..."}
             {isGeneratingNutrition && "Analizando la información nutricional..."}
+            {isSendingMenuEmail && "Enviando tu menú por correo..."}
           </p>
           <p className="text-muted-foreground">Esto puede tomar unos momentos.</p>
         </div>
       )}
 
-      {error && !isGeneratingMenu && !isGeneratingList && !isGeneratingNutrition && (
+      {error && !isGeneratingMenu && !isGeneratingList && !isGeneratingNutrition && !isSendingMenuEmail && (
          <Alert variant="destructive" className="max-w-2xl mx-auto">
            <Terminal className="h-4 w-4" />
            <AlertTitle>Error</AlertTitle>
@@ -374,10 +438,67 @@ export default function HomePage() {
             loadingImages={loadingImages}
           />
           {canGenerateAdditionalInfo && (
-            <div className="text-center mt-8 flex flex-col sm:flex-row justify-center items-center gap-4">
+            <div className="text-center mt-8 flex flex-col sm:flex-row flex-wrap justify-center items-center gap-4">
+              <Dialog open={isSendMenuEmailDialogOpen} onOpenChange={setIsSendMenuEmailDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button 
+                    size="lg"
+                    className="bg-accent hover:bg-accent/90 text-accent-foreground"
+                    disabled={isGeneratingMenu || isGeneratingList || isGeneratingNutrition || isSendingMenuEmail}
+                  >
+                    <Mail className="mr-2 h-5 w-5" />
+                    Enviar Menú por Mail
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle>Enviar Menú Seleccionado</DialogTitle>
+                    <DialogDescription>
+                      Ingresa la dirección de correo electrónico a la que deseas enviar el menú.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="menu-email" className="text-right">
+                        Email
+                      </Label>
+                      <Input
+                        id="menu-email"
+                        type="email"
+                        value={menuRecipientEmail}
+                        onChange={(e) => setMenuRecipientEmail(e.target.value)}
+                        placeholder="nombre@ejemplo.com"
+                        className="col-span-3"
+                        disabled={isSendingMenuEmail}
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <DialogClose asChild>
+                      <Button type="button" variant="outline" disabled={isSendingMenuEmail}>
+                        Cancelar
+                      </Button>
+                    </DialogClose>
+                    <Button onClick={handleSendSelectedMenuByEmail} disabled={isSendingMenuEmail}>
+                      {isSendingMenuEmail ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Enviando...
+                        </>
+                      ) : (
+                        <>
+                          <Send className="mr-2 h-4 w-4" />
+                          Enviar Menú
+                        </>
+                      )}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+
               <Button 
                 onClick={handleGenerateShoppingList} 
-                disabled={isGeneratingList || isGeneratingMenu || isGeneratingNutrition}
+                disabled={isGeneratingList || isGeneratingMenu || isGeneratingNutrition || isSendingMenuEmail}
                 size="lg"
                 className="bg-accent hover:bg-accent/90 text-accent-foreground"
               >
@@ -386,9 +507,10 @@ export default function HomePage() {
               </Button>
               <Button 
                 onClick={handleGenerateNutritionalInfo} 
-                disabled={isGeneratingNutrition || isGeneratingMenu || isGeneratingList}
+                disabled={isGeneratingNutrition || isGeneratingMenu || isGeneratingList || isSendingMenuEmail || !allLunchesSelected}
                 size="lg"
                 className="bg-accent hover:bg-accent/90 text-accent-foreground"
+                title={!allLunchesSelected ? "Debes seleccionar un almuerzo para cada día del menú." : ""}
               >
                 <ClipboardList className="mr-2 h-5 w-5" />
                 {isGeneratingNutrition ? "Analizando Nutrición..." : "Información Nutricional"}
@@ -411,11 +533,11 @@ export default function HomePage() {
         </>
       )}
       
-      {shoppingList && !isGeneratingList && !isGeneratingNutrition && (
+      {shoppingList && !isGeneratingList && !isGeneratingNutrition && !isSendingMenuEmail && (
           <ShoppingListDisplay shoppingList={shoppingList} />
       )}
 
-      {nutritionalReport && !isGeneratingNutrition && !isGeneratingList && (
+      {nutritionalReport && !isGeneratingNutrition && !isGeneratingList && !isSendingMenuEmail && (
           <NutritionalInfoDisplay nutritionalReport={nutritionalReport} />
       )}
 
