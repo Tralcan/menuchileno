@@ -84,7 +84,7 @@ export default function ShoppingListDisplay({ shoppingList }: ShoppingListDispla
         </CardHeader>
         <CardContent>
           {shoppingList.length > 0 ? (
-            <ScrollArea className="h-72 w-full rounded-md border p-4 bg-secondary/30 scroll-area-viewport">
+            <ScrollArea className="h-96 w-full rounded-md border p-4 bg-secondary/30">
               <ul className="space-y-2">
                 {shoppingList.map((item, index) => (
                   <li key={index} className="flex items-center text-sm p-2 bg-background rounded-md shadow-sm hover:bg-secondary/20 transition-colors">
