@@ -37,7 +37,7 @@ export default function MenuForm({ onSubmit, isLoading }: MenuFormProps) {
         <div className="mx-auto bg-primary text-primary-foreground rounded-full p-3 w-fit mb-2">
            <ChefHat size={32} />
         </div>
-        <CardTitle className="font-headline text-3xl">¡Planifica tu Menú!</CardTitle>
+        <CardTitle className="font-headline text-3xl">¡Planifica tus Comidas!</CardTitle>
         <CardDescription>
           Ingresa los detalles para generar opciones de almuerzo y tu lista de compras personalizada.
         </CardDescription>
