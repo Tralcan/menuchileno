@@ -63,7 +63,7 @@ const sendShoppingListEmailFlow = ai.defineFlow(
 
     try {
       const { data, error } = await resend.emails.send({
-        from: 'MySmartMenu <onboarding@resend.dev>',
+        from: 'MySmartMenu <mysmartmenu@notifications.cl>',
         to: [recipientEmail],
         subject: 'Tu Lista de Compras de My Smart Menu',
         html: emailHtml,

@@ -85,7 +85,7 @@ const sendSelectedMenuEmailFlow = ai.defineFlow(
 
     try {
       const { data, error } = await resend.emails.send({
-        from: 'MySmartMenu <onboarding@resend.dev>',
+        from: 'MySmartMenu <mysmartmenu@notifications.cl>',
         to: [recipientEmail],
         subject: 'Tu Menú Seleccionado de My Smart Menu',
         html: emailHtml,

@@ -99,7 +99,7 @@ const sendNutritionalReportEmailFlow = ai.defineFlow(
 
     try {
       const { data, error } = await resend.emails.send({
-        from: 'MySmartMenu <onboarding@resend.dev>', // Requerido por Resend para cuentas gratuitas/de prueba. Cambia si tienes un dominio configurado.
+        from: 'MySmartMenu <mysmartmenu@notifications.cl>', 
         to: [recipientEmail],
         subject: 'Tu Informe Nutricional de My Smart Menu',
         html: emailHtml,
