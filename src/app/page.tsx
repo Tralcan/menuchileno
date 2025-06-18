@@ -15,12 +15,12 @@ import MenuDisplay from '@/components/menu/menu-display';
 import ShoppingListDisplay from '@/components/menu/shopping-list-display';
 import NutritionalInfoDisplay from '@/components/menu/nutritional-info-display';
 import RecipeDetailModal from '@/components/menu/recipe-detail-modal';
-import CoffeeModal from '@/components/menu/coffee-modal'; // Nuevo modal
+import CoffeeModal from '@/components/menu/coffee-modal';
 import LoadingSpinner from '@/components/ui/loading-spinner';
 import { Button } from '@/components/ui/button';
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Terminal, ShoppingCart, ClipboardList, Heart } from "lucide-react"; // Importar Heart
+import { Terminal, ShoppingCart, ClipboardList, Heart } from "lucide-react";
 import Image from 'next/image';
 
 export type RecipeForModal = CoreRecipe & { day: number; mealTitle: string; imageDataUri?: string };
@@ -38,7 +38,7 @@ export default function HomePage() {
   const [selectedRecipeForModal, setSelectedRecipeForModal] = useState<RecipeForModal | null>(null);
   const [loadingImages, setLoadingImages] = useState<Record<string, boolean>>({}); 
   const [heroImageDataUri, setHeroImageDataUri] = useState<string | null>(null);
-  const [isCoffeeModalOpen, setIsCoffeeModalOpen] = useState(false); // Estado para el modal de café
+  const [isCoffeeModalOpen, setIsCoffeeModalOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -389,7 +389,8 @@ export default function HomePage() {
               <Button 
                 onClick={handleOpenCoffeeModal}
                 size="lg"
-                className="bg-accent hover:bg-accent/90 text-accent-foreground"
+                variant="outline"
+                className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
               >
                 <Heart className="mr-2 h-5 w-5" />
                 Apóyame con tu aporte
