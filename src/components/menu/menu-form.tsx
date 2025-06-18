@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChefHat, Users } from "lucide-react";
+import { ChefHat, Users, CalendarDays } from "lucide-react";
 
 const formSchema = z.object({
   numberOfDays: z.coerce.number().min(1, "Debe ser al menos 1 día").max(30, "Máximo 30 días"),
@@ -50,7 +50,9 @@ export default function MenuForm({ onSubmit, isLoading }: MenuFormProps) {
               name="numberOfDays"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Número de Días</FormLabel>
+                  <FormLabel className="flex items-center gap-1.5">
+                    <CalendarDays size={16} /> Número de Días
+                  </FormLabel>
                   <FormControl>
                     <Input type="number" placeholder="Ej: 7" {...field} disabled={isLoading} />
                   </FormControl>
