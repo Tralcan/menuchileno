@@ -1,10 +1,10 @@
 
-import type { RecipeForModal } from '@/app/page'; // RecipeForModal includes imageDataUri?
+import type { RecipeForModal } from '@/app/page'; 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { UtensilsCrossed, ListChecks, Info, CalendarClock, Sparkles, Users } from 'lucide-react';
+import { UtensilsCrossed, ListChecks, Info, CalendarClock, Sparkles, Users, CookingPot } from 'lucide-react';
 
 interface RecipeDetailModalProps {
   recipe: RecipeForModal | null;
@@ -14,6 +14,8 @@ interface RecipeDetailModalProps {
 
 export default function RecipeDetailModal({ recipe, isOpen, onClose }: RecipeDetailModalProps) {
   if (!recipe) return null;
+
+  const thermomixSearchUrl = `https://www.google.cl/search?q=${encodeURIComponent(recipe.recipeName)}+thermomix`;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -26,7 +28,7 @@ export default function RecipeDetailModal({ recipe, isOpen, onClose }: RecipeDet
               layout="fill"
               objectFit="cover"
               data-ai-hint={!recipe.imageDataUri ? "chilean food plate" : undefined}
-              priority={false} // Dynamically loaded images are not priority
+              priority={false} 
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
             <DialogTitle className="font-headline text-3xl absolute bottom-4 left-4 text-primary-foreground">{recipe.recipeName}</DialogTitle>
@@ -68,8 +70,19 @@ export default function RecipeDetailModal({ recipe, isOpen, onClose }: RecipeDet
           </div>
         </ScrollArea>
 
-        <DialogFooter className="p-6 pt-4 border-t row-start-3">
-          <Button onClick={onClose} variant="outline">Cerrar</Button>
+        <DialogFooter className="p-6 pt-4 border-t row-start-3 flex flex-col sm:flex-row sm:justify-between items-center gap-2">
+          <a
+            href={thermomixSearchUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full sm:w-auto"
+          >
+            <Button variant="secondary" className="w-full">
+              <CookingPot size={16} className="mr-2" />
+              Buscar receta para Thermomix
+            </Button>
+          </a>
+          <Button onClick={onClose} variant="outline" className="w-full sm:w-auto">Cerrar</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
