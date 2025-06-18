@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { UtensilsCrossed, ListChecks, Info, CalendarClock, Sparkles, Users, CookingPot } from 'lucide-react';
+import { UtensilsCrossed, ListChecks, Info, CalendarClock, Sparkles, Users, CookingPot, Youtube } from 'lucide-react';
 
 interface RecipeDetailModalProps {
   recipe: RecipeForModal | null;
@@ -16,6 +16,7 @@ export default function RecipeDetailModal({ recipe, isOpen, onClose }: RecipeDet
   if (!recipe) return null;
 
   const thermomixSearchUrl = `https://www.google.cl/search?q=${encodeURIComponent(recipe.recipeName)}+thermomix`;
+  const youtubeSearchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(recipe.recipeName)}`;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -71,17 +72,30 @@ export default function RecipeDetailModal({ recipe, isOpen, onClose }: RecipeDet
         </ScrollArea>
 
         <DialogFooter className="p-6 pt-4 border-t row-start-3 flex flex-col sm:flex-row sm:justify-between items-center gap-2">
-          <a
-            href={thermomixSearchUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-full sm:w-auto"
-          >
-            <Button variant="secondary" className="w-full">
-              <CookingPot size={16} className="mr-2" />
-              Buscar receta para Thermomix
-            </Button>
-          </a>
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            <a
+              href={thermomixSearchUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full sm:w-auto"
+            >
+              <Button variant="secondary" className="w-full">
+                <CookingPot size={16} className="mr-2" />
+                Buscar receta para Thermomix
+              </Button>
+            </a>
+            <a
+              href={youtubeSearchUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full sm:w-auto"
+            >
+              <Button variant="secondary" className="w-full">
+                <Youtube size={16} className="mr-2" />
+                Buscar video
+              </Button>
+            </a>
+          </div>
           <Button onClick={onClose} variant="outline" className="w-full sm:w-auto">Cerrar</Button>
         </DialogFooter>
       </DialogContent>
