@@ -32,6 +32,14 @@ import { Label } from "@/components/ui/label";
 export type RecipeForModal = CoreRecipe & { day: number; mealTitle: string; imageDataUri?: string };
 export type SelectedLunches = Record<number, CoreRecipe | null>;
 
+// Define the type for form values passed from MenuForm
+type MenuFormSubmitValues = {
+  numberOfDays: number;
+  numberOfPeople: number;
+  dietaryPreference?: string; // This matches the transformed value from MenuForm
+};
+
+
 export default function HomePage() {
   const [isGeneratingMenu, setIsGeneratingMenu] = useState(false);
   const [isGeneratingList, setIsGeneratingList] = useState(false);
@@ -70,7 +78,7 @@ export default function HomePage() {
     generateHeroImage();
   }, []); 
 
-  const handleMenuFormSubmit = async (values: GenerateMenuInput) => {
+  const handleMenuFormSubmit = async (values: MenuFormSubmitValues) => {
     setIsGeneratingMenu(true);
     setError(null);
     setMenuData(null);
@@ -82,10 +90,12 @@ export default function HomePage() {
 
 
     try {
-      const result = await generateMenu({ 
+      const menuInput: GenerateMenuInput = { 
         numberOfDays: values.numberOfDays, 
-        numberOfPeople: values.numberOfPeople || 4 
-      });
+        numberOfPeople: values.numberOfPeople || 4,
+        dietaryPreference: values.dietaryPreference // Pass it directly
+      };
+      const result = await generateMenu(menuInput);
 
       if (result && result.menu) {
         setMenuData(result.menu);
@@ -96,7 +106,7 @@ export default function HomePage() {
         setSelectedLunches(initialSelections);
         toast({
           title: "¡Opciones de Menú Generadas!",
-          description: `Tu menú para ${values.numberOfDays} días y ${values.numberOfPeople || 4} personas está listo. Las imágenes de los platos se cargarán en breve.`,
+          description: `Tu menú para ${values.numberOfDays} días, ${values.numberOfPeople || 4} personas${values.dietaryPreference ? ` (${values.dietaryPreference})` : ''} está listo. Las imágenes se cargarán.`,
           variant: "default",
           duration: 7000,
         });
@@ -140,7 +150,6 @@ export default function HomePage() {
               }
             } catch (imgErr) {
               console.error(`Error generating image for ${recipe.recipeName} (${mealType}, day ${day}):`, imgErr);
-              // Toast de error de imagen eliminado
             } finally {
               setLoadingImages(prev => ({ ...prev, [recipeKey]: false }));
             }

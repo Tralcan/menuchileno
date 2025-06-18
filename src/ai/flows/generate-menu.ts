@@ -4,6 +4,7 @@
 /**
  * @fileOverview Generates a Chilean menu with suggested and optional lunches for a specified number of days and people,
  * including Peruvian and Latin American dishes popular in Chile, as well as European dishes adapted to Chilean taste.
+ * Allows for dietary preferences like Vegetarian or Vegan.
  *
  * - generateMenu - A function that generates the menu.
  * - GenerateMenuInput - The input type for the generateMenu function.
@@ -24,13 +25,17 @@ const GenerateMenuInputSchema = z.object({
     .min(1)
     .max(16)
     .default(4),
+  dietaryPreference: z
+    .string()
+    .optional()
+    .describe('Preferencia dietética. Valores posibles: "Vegetariano", "Vegano". Si no se provee, se asume omnívoro.'),
 });
 export type GenerateMenuInput = z.infer<typeof GenerateMenuInputSchema>;
 
 const CoreRecipeSchema = z.object({
   recipeName: z.string().describe('Nombre de la receta.'),
-  ingredients: z.array(z.string()).describe('Lista de ingredientes para la receta, con cantidades para el número de personas especificado (ej: "Arroz: 2 tazas", "Carne Molida: 500g").'),
-  instructions: z.string().describe('Instrucciones para preparar la receta.'),
+  ingredients: z.array(z.string()).describe('Lista de ingredientes para la receta, con cantidades para el número de personas especificado (ej: "Arroz: 2 tazas", "Carne Molida: 500g"). Deben ser consistentes con la preferencia dietética si se especificó.'),
+  instructions: z.string().describe('Instrucciones para preparar la receta, consistentes con la preferencia dietética si se especificó.'),
   evocativeDescription: z.string().describe('Un texto corto, poético/evocador para incitar a cocinar el plato.'),
   imageDataUri: z.string().optional().describe('URI de datos de la imagen generada para el plato (opcional).'),
 });
@@ -61,23 +66,32 @@ const prompt = ai.definePrompt({
   },
   prompt: `Eres un chef experto y CREATIVO. Tu misión es diseñar menús que sean balanceados, deliciosos y, fundamentalmente, MUY VARIADOS Y POCO REPETITIVOS.
 Sorpréndeme con tu conocimiento profundo de la gastronomía chilena, peruana, una amplia gama de joyas culinarias latinoamericanas, y también platos de origen europeo que son comúnmente disfrutados y adaptados en Chile. Incluye platos caseros y tesoros menos conocidos pero igualmente exquisitos.
-Para asegurar la variedad, incluye diferentes tipos de proteínas (vacuno, cerdo, pollo, pescado, mariscos, legumbres, huevos), diversos métodos de cocción (guisos, horneados, salteados, a la parrilla, al vapor), y considera platos de distintas regiones de Chile y de otros países latinoamericanos y europeos que sean populares o que podrían serlo en el contexto chileno.
+
+{{#if dietaryPreference}}
+IMPORTANTE: Todas las recetas generadas deben adherirse estrictamente a la siguiente preferencia dietética: {{dietaryPreference}}.
+Si la preferencia es "Vegetariano", todas las recetas deben ser estrictamente vegetarianas (sin carne de ningún tipo, incluyendo pescado y mariscos, pero pueden incluir huevos y lácteos). Los ingredientes y las instrucciones deben reflejar esto.
+Si la preferencia es "Vegano", todas las recetas deben ser estrictamente veganas (sin ningún producto de origen animal, incluyendo carne, pescado, mariscos, huevos, lácteos, miel, etc.). Los ingredientes y las instrucciones deben reflejar esto.
+Asegúrate de que las descripciones y nombres de los platos sean apropiados para esta preferencia.
+{{else}}
+Para este menú, considera una dieta omnívora, incluyendo una variedad de proteínas.
+{{/if}}
+
+Para asegurar la variedad (dentro de la preferencia dietética si aplica), incluye diferentes tipos de proteínas (vacuno, cerdo, pollo, pescado, mariscos, legumbres, seitán, tofu, tempeh, huevos - ajustando según la preferencia dietética si aplica), diversos métodos de cocción (guisos, horneados, salteados, a la parrilla, al vapor), y considera platos de distintas regiones de Chile y de otros países latinoamericanos y europeos que sean populares o que podrían serlo en el contexto chileno.
 Evita sugerir platos que sean demasiado similares entre sí en días consecutivos o dentro de la misma semana.
 
 Generarás un menú para {{numberOfDays}} días. Cada receta del menú debe ser para {{numberOfPeople}} personas.
 
 Para cada receta (tanto sugerida como opcional), incluye:
 - recipeName: Nombre de la receta.
-- ingredients: Lista de ingredientes. Para cada ingrediente, especifica la cantidad necesaria para {{numberOfPeople}} personas de la forma más precisa posible (e.g., 'Arroz: 2 tazas', 'Carne Molida: 500g', 'Cebolla: 1 grande'). No uses guiones '-' al inicio de cada ingrediente, solo la cadena de texto con el ingrediente y su cantidad.
-- instructions: Instrucciones detalladas de preparación.
-- evocativeDescription: Un texto corto (1-2 frases), inspirador y "semi-poético" que invite a preparar y disfrutar el plato. Ejemplo: "Un clásico reconfortante que abraza el alma con cada bocado." o "Sabores vibrantes que te transportarán a una tarde soleada junto al mar."
-
-No incluyas desayunos ni cenas, solo las dos opciones de almuerzo por día.
+- ingredients: Lista de ingredientes. Para cada ingrediente, especifica la cantidad necesaria para {{numberOfPeople}} personas de la forma más precisa posible (e.g., 'Arroz: 2 tazas', 'Tofu firme: 300g', 'Cebolla: 1 grande'). No uses guiones '-' al inicio de cada ingrediente, solo la cadena de texto con el ingrediente y su cantidad. Los ingredientes deben ser consistentes con la preferencia dietética.
+- instructions: Instrucciones detalladas de preparación, consistentes con la preferencia dietética.
+- evocativeDescription: Un texto corto (1-2 frases), inspirador y "semi-poético" que invite a preparar y disfrutar el plato.
 No incluyas el campo imageDataUri en tu respuesta JSON, se generará por separado.
 
+No incluyas desayunos ni cenas, solo las dos opciones de almuerzo por día.
 Devuelve el menú en formato JSON.
 
-Ejemplo de cómo debería ser la estructura para un día (este ejemplo es si {{numberOfPeople}} fuera 4, debes ajustar las cantidades para el valor de {{numberOfPeople}} que se te provea):
+Ejemplo de cómo debería ser la estructura para un día (este ejemplo es si {{numberOfPeople}} fuera 4 y la preferencia fuera omnívora, debes ajustar las cantidades para el valor de {{numberOfPeople}} y la preferencia dietética que se te provea):
 {
   "day": 1,
   "suggestedLunch": {
@@ -95,6 +109,7 @@ Ejemplo de cómo debería ser la estructura para un día (este ejemplo es si {{n
 }
 
 Asegúrate de que la salida sea solo el objeto JSON que se ajusta al esquema de salida. Las cantidades de los ingredientes deben ser calculadas con precisión para {{numberOfPeople}} personas. Si {{numberOfPeople}} es 1, asegúrate de que las cantidades sean para una sola persona.
+Si se especifica una preferencia dietética, TODAS las recetas y sus ingredientes deben cumplirla estrictamente.
 `,
 });
 
@@ -109,4 +124,3 @@ const generateMenuFlow = ai.defineFlow(
     return output!;
   }
 );
-
