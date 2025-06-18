@@ -140,12 +140,7 @@ export default function HomePage() {
               }
             } catch (imgErr) {
               console.error(`Error generating image for ${recipe.recipeName} (${mealType}, day ${day}):`, imgErr);
-              toast({
-                title: "Error al generar imagen",
-                description: `No se pudo generar la imagen para ${recipe.recipeName}. Se usará una imagen de reemplazo.`,
-                variant: "destructive",
-                duration: 4000,
-              });
+              // Toast de error de imagen eliminado
             } finally {
               setLoadingImages(prev => ({ ...prev, [recipeKey]: false }));
             }
@@ -191,7 +186,6 @@ export default function HomePage() {
     setIsGeneratingList(true);
     setError(null);
     setShoppingList(null);
-    // setNutritionalReport(null); // Keep nutritional report if already generated
 
 
     const shoppingListInputItems: CreateShoppingListInput['menu'] = Object.values(selectedLunches)
@@ -274,7 +268,6 @@ export default function HomePage() {
     setIsGeneratingNutrition(true);
     setError(null);
     setNutritionalReport(null);
-    // setShoppingList(null); // Keep shopping list if already generated
 
     try {
       const result = await generateNutritionalInfo({ 
