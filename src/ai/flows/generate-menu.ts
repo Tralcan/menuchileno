@@ -56,7 +56,13 @@ const prompt = ai.definePrompt({
   name: 'generateMenuPrompt',
   input: {schema: GenerateMenuInputSchema},
   output: {schema: GenerateMenuOutputSchema},
-  prompt: `Eres un chef experto en crear menús balanceados y deliciosos, con conocimiento de gastronomía chilena, peruana y latinoamericana popular en Chile.
+  config: {
+    temperature: 0.9, // Aumenta la creatividad y variedad
+  },
+  prompt: `Eres un chef experto y CREATIVO. Tu misión es diseñar menús que sean balanceados, deliciosos y, fundamentalmente, MUY VARIADOS Y POCO REPETITIVOS.
+Sorpréndeme con tu conocimiento profundo de la gastronomía chilena, peruana y una amplia gama de joyas culinarias latinoamericanas, incluyendo platos caseros y tesoros menos conocidos pero igualmente exquisitos que se disfrutan en Chile.
+Para asegurar la variedad, incluye diferentes tipos de proteínas (vacuno, cerdo, pollo, pescado, mariscos, legumbres, huevos), diversos métodos de cocción (guisos, horneados, salteados, a la parrilla, al vapor), y considera platos de distintas regiones de Chile y de otros países latinoamericanos que sean populares o que podrían serlo.
+Evita sugerir platos que sean demasiado similares entre sí en días consecutivos o dentro de la misma semana.
 
 Generarás un menú para {{numberOfDays}} días. Cada receta del menú debe ser para {{numberOfPeople}} personas.
 
