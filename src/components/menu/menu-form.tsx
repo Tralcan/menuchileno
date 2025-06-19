@@ -30,30 +30,26 @@ interface MenuFormProps {
 
 const COOKIE_NAME = 'mySmartMenuFormPrefs';
 
-export default function MenuForm({ onSubmit, isLoading }: MenuFormProps) {
-  const form = useForm<MenuFormValues>({
-    resolver: zodResolver(formSchema),
-    // Default values will be set by useEffect based on cookie or hardcoded defaults
-  });
+function getInitialFormValues(): MenuFormValues {
+  let defaultValues: MenuFormValues = {
+    numberOfDays: 7,
+    numberOfPeople: 4,
+    dietaryPreference: "Todos",
+    glutenFree: false,
+    lactoseFree: false,
+  };
 
-  React.useEffect(() => {
+  if (typeof document !== 'undefined') { // Ensure document is available (client-side)
     const cookieValue = document.cookie
       .split('; ')
       .find(row => row.startsWith(`${COOKIE_NAME}=`))
       ?.split('=')[1];
 
-    let initialValues: MenuFormValues = {
-      numberOfDays: 7,
-      numberOfPeople: 4,
-      dietaryPreference: "Todos",
-      glutenFree: false,
-      lactoseFree: false,
-    };
-
     if (cookieValue) {
       try {
         const savedPrefs = JSON.parse(decodeURIComponent(cookieValue));
-        initialValues = {
+        // Ensure all fields from MenuFormValues are present, falling back to defaults
+        defaultValues = {
           numberOfDays: savedPrefs.numberOfDays || 7,
           numberOfPeople: savedPrefs.numberOfPeople || 4,
           dietaryPreference: savedPrefs.dietaryPreference || "Todos",
@@ -62,15 +58,21 @@ export default function MenuForm({ onSubmit, isLoading }: MenuFormProps) {
         };
       } catch (e) {
         console.error("Error parsing saved form preferences from cookie:", e);
-        // initialValues remains the hardcoded defaults
+        // defaultValues remains the hardcoded defaults
       }
     }
-    form.reset(initialValues);
-  }, [form]);
+  }
+  return defaultValues;
+}
 
+export default function MenuForm({ onSubmit, isLoading }: MenuFormProps) {
+  const form = useForm<MenuFormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: getInitialFormValues(),
+  });
 
   const handleSubmit = (values: MenuFormValues) => {
-    onSubmit(values); // Pass raw form values up
+    onSubmit(values);
   };
 
   return (
@@ -126,7 +128,7 @@ export default function MenuForm({ onSubmit, isLoading }: MenuFormProps) {
                   <FormControl>
                     <RadioGroup
                       onValueChange={field.onChange}
-                      value={field.value} // Use value here
+                      value={field.value} 
                       className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-4"
                       disabled={isLoading}
                     >
