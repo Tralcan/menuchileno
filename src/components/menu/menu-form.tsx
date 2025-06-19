@@ -12,6 +12,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChefHat, Users, CalendarDays, Leaf, Globe } from "lucide-react";
+import { Label } from "@/components/ui/label";
+
 
 const formSchema = z.object({
   numberOfDays: z.coerce.number().min(1, "Debe ser al menos 1 día").max(30, "Máximo 30 días"),
@@ -48,7 +50,6 @@ function getInitialFormValues(): MenuFormValues {
     if (cookieValue) {
       try {
         const savedPrefs = JSON.parse(decodeURIComponent(cookieValue));
-        // Ensure all fields from MenuFormValues are present, falling back to defaults
         defaultValues = {
           numberOfDays: savedPrefs.numberOfDays || 7,
           numberOfPeople: savedPrefs.numberOfPeople || 4,
@@ -58,7 +59,6 @@ function getInitialFormValues(): MenuFormValues {
         };
       } catch (e) {
         console.error("Error parsing saved form preferences from cookie:", e);
-        // defaultValues remains the hardcoded defaults
       }
     }
   }
@@ -136,25 +136,25 @@ export default function MenuForm({ onSubmit, isLoading }: MenuFormProps) {
                         <FormControl>
                           <RadioGroupItem value="Todos" />
                         </FormControl>
-                        <FormLabel className="font-normal flex items-center gap-1.5">
+                        <Label className="font-normal flex items-center gap-1.5 cursor-pointer" htmlFor={field.name + "-todos"}> {/* Using ShadCN Label for direct association */}
                           <Globe size={16} /> Todos
-                        </FormLabel>
+                        </Label>
                       </FormItem>
                       <FormItem className="flex items-center space-x-2 space-y-0">
                         <FormControl>
                           <RadioGroupItem value="Vegetariano" />
                         </FormControl>
-                        <FormLabel className="font-normal flex items-center gap-1.5">
+                        <Label className="font-normal flex items-center gap-1.5 cursor-pointer" htmlFor={field.name + "-vegetariano"}>
                           <Leaf size={16} /> Vegetariano
-                        </FormLabel>
+                        </Label>
                       </FormItem>
                       <FormItem className="flex items-center space-x-2 space-y-0">
                         <FormControl>
                           <RadioGroupItem value="Vegano" />
                         </FormControl>
-                        <FormLabel className="font-normal flex items-center gap-1.5">
+                        <Label className="font-normal flex items-center gap-1.5 cursor-pointer" htmlFor={field.name + "-vegano"}>
                           <Leaf size={16} /> Vegano
-                        </FormLabel>
+                        </Label>
                       </FormItem>
                     </RadioGroup>
                   </FormControl>
@@ -168,52 +168,56 @@ export default function MenuForm({ onSubmit, isLoading }: MenuFormProps) {
 
             <FormItem className="space-y-3">
               <FormLabel>Otras Restricciones Dietéticas</FormLabel>
-              <FormField
-                control={form.control}
-                name="glutenFree"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow-sm">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                        disabled={isLoading}
-                      />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel className="font-normal">
-                        Sin Gluten
-                      </FormLabel>
-                      <FormDescription>
-                        Marcar si necesitas recetas sin trigo, cebada, centeno, etc.
-                      </FormDescription>
-                    </div>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="lactoseFree"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow-sm">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                        disabled={isLoading}
-                      />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel className="font-normal">
-                        Sin Lactosa
-                      </FormLabel>
-                      <FormDescription>
-                        Marcar si necesitas recetas sin lactosa o con alternativas.
-                      </FormDescription>
-                    </div>
-                  </FormItem>
-                )}
-              />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3 pt-1">
+                <FormField
+                  control={form.control}
+                  name="glutenFree"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          disabled={isLoading}
+                          id="glutenFree"
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <Label htmlFor="glutenFree" className="font-normal cursor-pointer">
+                          Sin Gluten
+                        </Label>
+                        <FormDescription>
+                          Recetas sin trigo, cebada, centeno, etc.
+                        </FormDescription>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="lactoseFree"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          disabled={isLoading}
+                          id="lactoseFree"
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <Label htmlFor="lactoseFree" className="font-normal cursor-pointer">
+                          Sin Lactosa
+                        </Label>
+                        <FormDescription>
+                          Recetas sin lactosa o con alternativas.
+                        </FormDescription>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+              </div>
             </FormItem>
 
             <Button type="submit" className="w-full bg-accent hover:bg-accent/90 text-accent-foreground" disabled={isLoading}>
@@ -225,3 +229,4 @@ export default function MenuForm({ onSubmit, isLoading }: MenuFormProps) {
     </Card>
   );
 }
+
