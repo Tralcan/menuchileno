@@ -12,7 +12,7 @@ import { generateNutritionalInfo } from '@/ai/flows/generate-nutritional-info-fl
 import { sendSelectedMenuEmail, type SendSelectedMenuEmailInput, type SelectedMenuItem } from '@/ai/flows/send-selected-menu-email-flow';
 
 
-import MenuForm from '@/components/menu/menu-form';
+import MenuForm, { type MenuFormValues } from '@/components/menu/menu-form'; // Import MenuFormValues
 import MenuDisplay from '@/components/menu/menu-display';
 import ShoppingListDisplay from '@/components/menu/shopping-list-display';
 import NutritionalInfoDisplay from '@/components/menu/nutritional-info-display';
@@ -32,13 +32,9 @@ import { Label } from "@/components/ui/label";
 export type RecipeForModal = CoreRecipe & { day: number; mealTitle: string; imageDataUri?: string };
 export type SelectedLunches = Record<number, CoreRecipe | null>;
 
-// Define the type for form values passed from MenuForm
-type MenuFormSubmitValues = {
-  numberOfDays: number;
-  numberOfPeople: number;
-  dietaryPreference?: string; // This matches the transformed value from MenuForm
-};
-
+// Use MenuFormValues for values received from MenuForm
+type MenuFormSubmitValues = MenuFormValues;
+const COOKIE_NAME = 'mySmartMenuFormPrefs';
 
 export default function HomePage() {
   const [isGeneratingMenu, setIsGeneratingMenu] = useState(false);
@@ -88,12 +84,15 @@ export default function HomePage() {
     setLoadingImages({});
     setCurrentNumberOfPeople(values.numberOfPeople || 4);
 
+    const aiDietaryPreference = values.dietaryPreference === "Todos" ? undefined : values.dietaryPreference;
 
     try {
       const menuInput: GenerateMenuInput = { 
         numberOfDays: values.numberOfDays, 
         numberOfPeople: values.numberOfPeople || 4,
-        dietaryPreference: values.dietaryPreference // Pass it directly
+        dietaryPreference: aiDietaryPreference,
+        glutenFree: values.glutenFree,
+        lactoseFree: values.lactoseFree,
       };
       const result = await generateMenu(menuInput);
 
@@ -104,9 +103,33 @@ export default function HomePage() {
           initialSelections[dayMenu.day] = dayMenu.suggestedLunch;
         });
         setSelectedLunches(initialSelections);
+        
+        // Save form preferences to cookie after successful generation
+        const prefsToSave: MenuFormSubmitValues = {
+            numberOfDays: values.numberOfDays,
+            numberOfPeople: values.numberOfPeople,
+            dietaryPreference: values.dietaryPreference, // Save the raw "Todos", "Vegetariano", or "Vegano"
+            glutenFree: values.glutenFree || false,
+            lactoseFree: values.lactoseFree || false,
+        };
+        document.cookie = `${COOKIE_NAME}=${encodeURIComponent(JSON.stringify(prefsToSave))};path=/;max-age=${60*60*24*30};SameSite=Lax`;
+
+
+        let toastDescription = `Tu menú para ${values.numberOfDays} días, ${values.numberOfPeople || 4} personas`;
+        if (values.dietaryPreference && values.dietaryPreference !== "Todos") {
+          toastDescription += ` (${values.dietaryPreference})`;
+        }
+        if (values.glutenFree) {
+          toastDescription += `, Sin Gluten`;
+        }
+        if (values.lactoseFree) {
+          toastDescription += `, Sin Lactosa`;
+        }
+        toastDescription += ` está listo. Las imágenes se cargarán.`;
+        
         toast({
           title: "¡Opciones de Menú Generadas!",
-          description: `Tu menú para ${values.numberOfDays} días, ${values.numberOfPeople || 4} personas${values.dietaryPreference ? ` (${values.dietaryPreference})` : ''} está listo. Las imágenes se cargarán.`,
+          description: toastDescription,
           variant: "default",
           duration: 7000,
         });
@@ -150,6 +173,7 @@ export default function HomePage() {
               }
             } catch (imgErr) {
               console.error(`Error generating image for ${recipe.recipeName} (${mealType}, day ${day}):`, imgErr);
+              // Toast for image error removed as per user request
             } finally {
               setLoadingImages(prev => ({ ...prev, [recipeKey]: false }));
             }

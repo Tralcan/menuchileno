@@ -1,6 +1,7 @@
 
 "use client";
 
+import * as React from "react";
 import * as z from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -8,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChefHat, Users, CalendarDays, Leaf, Globe } from "lucide-react";
 
@@ -15,31 +17,60 @@ const formSchema = z.object({
   numberOfDays: z.coerce.number().min(1, "Debe ser al menos 1 día").max(30, "Máximo 30 días"),
   numberOfPeople: z.coerce.number().min(1, "Debe ser al menos 1 persona").max(16, "Máximo 16 personas"),
   dietaryPreference: z.string().optional().default("Todos"),
+  glutenFree: z.boolean().optional().default(false),
+  lactoseFree: z.boolean().optional().default(false),
 });
 
-type MenuFormValues = z.infer<typeof formSchema>;
+export type MenuFormValues = z.infer<typeof formSchema>;
 
 interface MenuFormProps {
-  onSubmit: (values: Omit<MenuFormValues, 'dietaryPreference'> & { dietaryPreference?: string }) => void;
+  onSubmit: (values: MenuFormValues) => void;
   isLoading: boolean;
 }
+
+const COOKIE_NAME = 'mySmartMenuFormPrefs';
 
 export default function MenuForm({ onSubmit, isLoading }: MenuFormProps) {
   const form = useForm<MenuFormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
+    // Default values will be set by useEffect based on cookie or hardcoded defaults
+  });
+
+  React.useEffect(() => {
+    const cookieValue = document.cookie
+      .split('; ')
+      .find(row => row.startsWith(`${COOKIE_NAME}=`))
+      ?.split('=')[1];
+
+    let initialValues: MenuFormValues = {
       numberOfDays: 7,
       numberOfPeople: 4,
       dietaryPreference: "Todos",
-    },
-  });
+      glutenFree: false,
+      lactoseFree: false,
+    };
+
+    if (cookieValue) {
+      try {
+        const savedPrefs = JSON.parse(decodeURIComponent(cookieValue));
+        initialValues = {
+          numberOfDays: savedPrefs.numberOfDays || 7,
+          numberOfPeople: savedPrefs.numberOfPeople || 4,
+          dietaryPreference: savedPrefs.dietaryPreference || "Todos",
+          glutenFree: typeof savedPrefs.glutenFree === 'boolean' ? savedPrefs.glutenFree : false,
+          lactoseFree: typeof savedPrefs.lactoseFree === 'boolean' ? savedPrefs.lactoseFree : false,
+        };
+      } catch (e) {
+        console.error("Error parsing saved form preferences from cookie:", e);
+        // initialValues remains the hardcoded defaults
+      }
+    }
+    form.reset(initialValues);
+  }, [form]);
+
 
   const handleSubmit = (values: MenuFormValues) => {
-    const submissionValues = {
-      ...values,
-      dietaryPreference: values.dietaryPreference === "Todos" ? undefined : values.dietaryPreference,
-    };
-    onSubmit(submissionValues);
+    onSubmit(values); // Pass raw form values up
   };
 
   return (
@@ -91,11 +122,11 @@ export default function MenuForm({ onSubmit, isLoading }: MenuFormProps) {
               name="dietaryPreference"
               render={({ field }) => (
                 <FormItem className="space-y-3">
-                  <FormLabel>Preferencia Dietética</FormLabel>
+                  <FormLabel>Preferencia Dietética Principal</FormLabel>
                   <FormControl>
                     <RadioGroup
                       onValueChange={field.onChange}
-                      defaultValue={field.value}
+                      value={field.value} // Use value here
                       className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-4"
                       disabled={isLoading}
                     >
@@ -132,6 +163,57 @@ export default function MenuForm({ onSubmit, isLoading }: MenuFormProps) {
                 </FormItem>
               )}
             />
+
+            <FormItem className="space-y-3">
+              <FormLabel>Otras Restricciones Dietéticas</FormLabel>
+              <FormField
+                control={form.control}
+                name="glutenFree"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow-sm">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        disabled={isLoading}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel className="font-normal">
+                        Sin Gluten
+                      </FormLabel>
+                      <FormDescription>
+                        Marcar si necesitas recetas sin trigo, cebada, centeno, etc.
+                      </FormDescription>
+                    </div>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="lactoseFree"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow-sm">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        disabled={isLoading}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel className="font-normal">
+                        Sin Lactosa
+                      </FormLabel>
+                      <FormDescription>
+                        Marcar si necesitas recetas sin lactosa o con alternativas.
+                      </FormDescription>
+                    </div>
+                  </FormItem>
+                )}
+              />
+            </FormItem>
+
             <Button type="submit" className="w-full bg-accent hover:bg-accent/90 text-accent-foreground" disabled={isLoading}>
               {isLoading ? "Generando Opciones..." : "Generar Opciones de Menú"}
             </Button>
