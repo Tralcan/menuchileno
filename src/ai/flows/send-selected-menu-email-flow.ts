@@ -42,7 +42,7 @@ function generateMenuEmailHtml(menu: SelectedMenuItem[]): string {
     const youtubeSearchUrl = `https://www.youtube.com/results?search_query=${encodedRecipeName}`;
     
     return `
-    <div style="margin-bottom: 25px; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; background-color: #f9f9f9;">
+    <div style="padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; background-color: #f9f9f9;">
       <h3 style="color: #c4392d; margin-top: 0; margin-bottom: 15px; font-size: 1.3em; border-bottom: 1px solid #eee; padding-bottom: 8px;">
         Día ${item.day}: ${item.recipeName}
       </h3>
@@ -67,13 +67,19 @@ function generateMenuEmailHtml(menu: SelectedMenuItem[]): string {
         </ul>
       </div>
     </div>
-  `}).join('');
+  `}).join('<hr style="border: 0; border-top: 1px solid #e9ecef; margin: 30px 0;">');
 
   return `
     <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 700px; margin: 20px auto; padding: 25px; border: 1px solid #ddd; border-radius: 8px; background-color: #ffffff;">
       <h2 style="color: #E63946; text-align: center; border-bottom: 2px solid #F4DBD3; padding-bottom: 15px; margin-bottom: 25px;">Tu Menú Semanal de My Smart Menu</h2>
       <p style="font-size: 1.1em; margin-bottom: 25px;">Aquí tienes los detalles de tu menú seleccionado:</p>
       ${menuDaysHtml}
+      <div style="text-align: center; margin-top: 40px; margin-bottom: 20px; padding-top: 20px; border-top: 1px solid #e9ecef;">
+        <p style="margin-bottom: 15px; font-size: 1em;">Si encuentras útil My Smart Menu, considera apoyarme:</p>
+        <a href="https://coff.ee/6hxrhhkvhs2" target="_blank" style="background-color: #F49D1A; color: white; padding: 12px 20px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
+          Apóyame con un Café ❤️
+        </a>
+      </div>
       <p style="margin-top: 30px; text-align: center; font-size: 0.9em; color: #777;">
         Generado por My Smart Menu. ¡A disfrutar de la cocina!
       </p>

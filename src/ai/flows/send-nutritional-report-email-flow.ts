@@ -69,6 +69,12 @@ function generateEmailHtml(report: RecipeNutritionalInfo[]): string {
       <h2 style="color: #E63946; text-align: center; border-bottom: 2px solid #F4DBD3; padding-bottom: 10px;">Tu Informe Nutricional de My Smart Menu</h2>
       <p style="font-size: 1.1em; margin-bottom: 20px;">Aquí tienes el detalle nutricional por persona para los platos seleccionados:</p>
       ${recipesHtml}
+      <div style="text-align: center; margin-top: 40px; margin-bottom: 20px; padding-top: 20px; border-top: 1px solid #e9ecef;">
+        <p style="margin-bottom: 15px; font-size: 1em;">Si encuentras útil My Smart Menu, considera apoyarme:</p>
+        <a href="https://coff.ee/6hxrhhkvhs2" target="_blank" style="background-color: #F49D1A; color: white; padding: 12px 20px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
+          Apóyame con un Café ❤️
+        </a>
+      </div>
       <p style="margin-top: 30px; text-align: center; font-size: 0.9em; color: #777;">
         Generado por My Smart Menu. ¡Buen provecho!
       </p>

@@ -34,6 +34,12 @@ function generateEmailHtml(list: string[]): string {
       <ul style="list-style-type: none; padding-left: 0;">
         ${itemsHtml}
       </ul>
+      <div style="text-align: center; margin-top: 40px; margin-bottom: 20px; padding-top: 20px; border-top: 1px solid #e9ecef;">
+        <p style="margin-bottom: 15px; font-size: 1em;">Si encuentras útil My Smart Menu, considera apoyarme:</p>
+        <a href="https://coff.ee/6hxrhhkvhs2" target="_blank" style="background-color: #F49D1A; color: white; padding: 12px 20px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
+          Apóyame con un Café ❤️
+        </a>
+      </div>
       <p style="margin-top: 30px; text-align: center; font-size: 0.9em; color: #777;">
         Generado por My Smart Menu. ¡Felices compras!
       </p>
