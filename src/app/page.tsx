@@ -358,6 +358,7 @@ export default function HomePage() {
           instructions: recipe.instructions,
           evocativeDescription: recipe.evocativeDescription,
           suggestedMusic: recipe.suggestedMusic,
+          suggestedPairing: recipe.suggestedPairing,
         };
       })
       .sort((a, b) => a.day - b.day);

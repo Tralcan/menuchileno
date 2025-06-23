@@ -46,6 +46,7 @@ const CoreRecipeSchema = z.object({
   instructions: z.string().describe('Instrucciones para preparar la receta, consistentes con todas las preferencias y restricciones dietéticas especificadas.'),
   evocativeDescription: z.string().describe('Un texto inspirador, poético y ligeramente más extenso para incitar a cocinar y disfrutar el plato.'),
   suggestedMusic: z.string().describe('Una sugerencia de música (artista y canción, o un estilo/playlist) para escuchar mientras se cocina o come este plato.'),
+  suggestedPairing: z.string().optional().describe('Una sugerencia de maridaje con vino o cerveza para el plato.'),
   imageDataUri: z.string().optional().describe('URI de datos de la imagen generada para el plato (opcional).'),
 });
 export type CoreRecipe = z.infer<typeof CoreRecipeSchema>;
@@ -106,8 +107,9 @@ Para cada receta (tanto sugerida como opcional), incluye:
 - instructions: Instrucciones detalladas de preparación, consistentes con TODAS las preferencias y restricciones dietéticas.
 - evocativeDescription: Un texto inspirador, poético y un poco más extenso (2-3 frases) que invite a preparar y disfrutar el plato, evocando sensaciones y atmósferas.
 - suggestedMusic: Una sugerencia de música o artista para crear el ambiente perfecto mientras cocinas o disfrutas de la comida. Sé creativo y relaciona la música con el estilo del plato (ej: "Los Jaivas - Todos Juntos" para un plato chileno tradicional, "Buena Vista Social Club" para algo con sabor caribeño, "Una playlist de jazz suave" para una cena elegante).
-No incluyas el campo imageDataUri en tu respuesta JSON, se generará por separado.
+- suggestedPairing: Una sugerencia de maridaje con un vino (cepa y, si es posible, un ejemplo de viña chilena) o una cerveza artesanal chilena que complemente bien los sabores. Si el plato es muy simple, no es para niños, o no amerita maridaje, puedes omitir esta sugerencia.
 
+No incluyas el campo imageDataUri en tu respuesta JSON, se generará por separado.
 No incluyas desayunos ni cenas, solo las dos opciones de almuerzo por día.
 Devuelve el menú en formato JSON.
 
@@ -119,14 +121,16 @@ Ejemplo de cómo debería ser la estructura para un día (este ejemplo es si {{n
     "ingredients": ["Carne Molida: 500g", "Pollo: 1 pechuga", "Cebolla: 1 unidad", "Choclo: 5 tazas", "Leche: 1 taza", "Albahaca: a gusto", "Huevo Duro: 2 unidades", "Aceitunas: 8 unidades"],
     "instructions": "Preparar un pino con carne molida, pollo y cebolla. Aparte, moler choclo con leche y albahaca. En una fuente para horno, colocar el pino, huevo duro y aceitunas. Cubrir con la mezcla de choclo. Hornear hasta dorar.",
     "evocativeDescription": "Un abrazo de la tierra chilena, donde el dulzor del choclo se encuentra con el sabor profundo del pino. Es un plato que sabe a verano, a campo y a hogar.",
-    "suggestedMusic": "Los Jaivas - 'Todos Juntos'"
+    "suggestedMusic": "Los Jaivas - 'Todos Juntos'",
+    "suggestedPairing": "Un vino tinto chileno, como un Carmenere de cuerpo medio, realzará los sabores de la carne sin opacar el dulzor del choclo."
   },
   "optionalLunch": {
     "recipeName": "Lentejas con Arroz",
     "ingredients": ["Lentejas: 2 tazas", "Arroz: 2 tazas", "Cebolla: 1 unidad", "Zanahoria: 2 unidades", "Zapallo: 200g", "Longaniza (opcional): 2 unidades"],
     "instructions": "Remojar las lentejas. Cocinarlas con cebolla, zanahoria y zapallo picados. Agregar longaniza si se desea. Servir con arroz graneado.",
     "evocativeDescription": "Un plato humilde y poderoso, perfecto para recargar energías con el sabor de casa. Su aroma te transporta a la cocina de la abuela, una promesa de calidez y nutrición.",
-    "suggestedMusic": "Víctor Jara - 'El Derecho de Vivir en Paz'"
+    "suggestedMusic": "Víctor Jara - 'El Derecho de Vivir en Paz'",
+    "suggestedPairing": "Una cerveza tipo Ale o Lager nacional complementa la sencillez y el sabor reconfortante de este plato."
   }
 }
 

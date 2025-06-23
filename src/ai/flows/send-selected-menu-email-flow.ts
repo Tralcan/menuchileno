@@ -20,6 +20,7 @@ const SelectedMenuItemSchema = z.object({
   instructions: z.string().describe('Instrucciones para preparar la receta.'),
   evocativeDescription: z.string().describe('Descripción evocadora de la receta.'),
   suggestedMusic: z.string().describe('Sugerencia musical para acompañar la receta.'),
+  suggestedPairing: z.string().optional().describe('Sugerencia de maridaje para el plato.'),
 });
 export type SelectedMenuItem = z.infer<typeof SelectedMenuItemSchema>;
 
@@ -41,6 +42,11 @@ function generateMenuEmailHtml(menu: SelectedMenuItem[]): string {
     const thermomixSearchUrl = `https://www.google.cl/search?q=${encodedRecipeName}+thermomix`;
     const youtubeSearchUrl = `https://www.youtube.com/results?search_query=${encodedRecipeName}`;
     
+    const pairingHtml = item.suggestedPairing ? `
+      <h4 style="color: #d9534f; margin-top: 15px; margin-bottom: 8px; font-size: 1.1em;">Maridaje Sugerido:</h4>
+      <p style="color: #555; font-size: 0.9em;">🍷 ${item.suggestedPairing}</p>
+    ` : '';
+
     return `
     <div style="padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; background-color: #f9f9f9;">
       <h3 style="color: #c4392d; margin-top: 0; margin-bottom: 15px; font-size: 1.3em; border-bottom: 1px solid #eee; padding-bottom: 8px;">
@@ -50,6 +56,8 @@ function generateMenuEmailHtml(menu: SelectedMenuItem[]): string {
       
       <h4 style="color: #d9534f; margin-top: 15px; margin-bottom: 8px; font-size: 1.1em;">Música Sugerida:</h4>
       <p style="color: #555; font-size: 0.9em;">🎵 ${item.suggestedMusic}</p>
+
+      ${pairingHtml}
 
       <h4 style="color: #d9534f; margin-top: 15px; margin-bottom: 8px; font-size: 1.1em;">Ingredientes:</h4>
       <ul style="color: #555; padding-left: 20px; margin-top: 0; margin-bottom:15px; font-size: 0.9em; list-style-type: disc;">
