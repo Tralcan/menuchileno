@@ -58,6 +58,9 @@ const prompt = ai.definePrompt({
   name: 'generateNutritionalInfoPrompt',
   input: {schema: GenerateNutritionalInfoInputSchema},
   output: {schema: GenerateNutritionalInfoOutputSchema},
+  config: {
+    temperature: 0.3,
+  },
   prompt: `Eres un nutricionista experto. Para cada uno de los siguientes platos, basándote en sus ingredientes y el número original de porciones para el que fue calculada la receta, proporciona un análisis nutricional detallado y lo más preciso posible POR PERSONA.
 
 La receta original para cada plato fue pensada para un número específico de personas (numberOfOriginalServings). Debes calcular y devolver la información nutricional para UNA SOLA PORCIÓN/PERSONA.
