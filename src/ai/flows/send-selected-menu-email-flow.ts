@@ -56,8 +56,10 @@ function generateMenuEmailHtml(menu: SelectedMenuItem[]): string {
       
       <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;">
         <h4 style="color: #d9534f; margin-top: 0; margin-bottom: 8px; font-size: 1.1em;">Recursos Adicionales:</h4>
-        <a href="${thermomixSearchUrl}" target="_blank" style="text-decoration: none; color: #3498db; margin-right: 15px; font-size: 0.9em;">Buscar receta para Thermomix</a>
-        <a href="${youtubeSearchUrl}" target="_blank" style="text-decoration: none; color: #3498db; font-size: 0.9em;">Buscar en YouTube</a>
+        <ul style="padding-left: 20px; margin-top: 0; font-size: 0.9em; list-style-type: disc;">
+            <li style="margin-bottom: 5px;"><a href="${thermomixSearchUrl}" target="_blank" style="text-decoration: none; color: #3498db;">Buscar receta para Thermomix</a></li>
+            <li><a href="${youtubeSearchUrl}" target="_blank" style="text-decoration: none; color: #3498db;">Buscar en YouTube</a></li>
+        </ul>
       </div>
     </div>
   `}).join('');
