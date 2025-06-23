@@ -92,7 +92,7 @@ export default function RecipeDetailModal({ recipe, isOpen, onClose }: RecipeDet
             >
               <Button variant="secondary" className="w-full">
                 <Youtube size={16} className="mr-2" />
-                Buscar video
+                Buscar en YouTube
               </Button>
             </a>
           </div>

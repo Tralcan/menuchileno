@@ -34,7 +34,12 @@ const SendSelectedMenuEmailOutputSchema = z.object({
 export type SendSelectedMenuEmailOutput = z.infer<typeof SendSelectedMenuEmailOutputSchema>;
 
 function generateMenuEmailHtml(menu: SelectedMenuItem[]): string {
-  const menuDaysHtml = menu.map(item => `
+  const menuDaysHtml = menu.map(item => {
+    const encodedRecipeName = encodeURIComponent(item.recipeName);
+    const thermomixSearchUrl = `https://www.google.cl/search?q=${encodedRecipeName}+thermomix`;
+    const youtubeSearchUrl = `https://www.youtube.com/results?search_query=${encodedRecipeName}`;
+    
+    return `
     <div style="margin-bottom: 25px; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; background-color: #f9f9f9;">
       <h3 style="color: #c4392d; margin-top: 0; margin-bottom: 15px; font-size: 1.3em; border-bottom: 1px solid #eee; padding-bottom: 8px;">
         Día ${item.day}: ${item.recipeName}
@@ -48,8 +53,14 @@ function generateMenuEmailHtml(menu: SelectedMenuItem[]): string {
       
       <h4 style="color: #d9534f; margin-top: 15px; margin-bottom: 8px; font-size: 1.1em;">Instrucciones:</h4>
       <p style="color: #555; white-space: pre-wrap; line-height: 1.5; font-size: 0.9em;">${item.instructions}</p>
+      
+      <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;">
+        <h4 style="color: #d9534f; margin-top: 0; margin-bottom: 8px; font-size: 1.1em;">Recursos Adicionales:</h4>
+        <a href="${thermomixSearchUrl}" target="_blank" style="text-decoration: none; color: #3498db; margin-right: 15px; font-size: 0.9em;">Buscar receta para Thermomix</a>
+        <a href="${youtubeSearchUrl}" target="_blank" style="text-decoration: none; color: #3498db; font-size: 0.9em;">Buscar en YouTube</a>
+      </div>
     </div>
-  `).join('');
+  `}).join('');
 
   return `
     <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 700px; margin: 20px auto; padding: 25px; border: 1px solid #ddd; border-radius: 8px; background-color: #ffffff;">
