@@ -17,7 +17,7 @@ const GenerateRecipeImageInputSchema = z.object({
 export type GenerateRecipeImageInput = z.infer<typeof GenerateRecipeImageInputSchema>;
 
 const GenerateRecipeImageOutputSchema = z.object({
-  imageDataUri: z.string().describe("The generated image as a data URI. Format: 'data:image/png;base64,<encoded_data>'."),
+  imageDataUri: z.string().optional().describe("The generated image as a data URI. Format: 'data:image/png;base64,<encoded_data>'. Can be undefined if generation fails."),
 });
 export type GenerateRecipeImageOutput = z.infer<typeof GenerateRecipeImageOutputSchema>;
 
@@ -43,25 +43,30 @@ const generateRecipeImageFlow = ai.defineFlow(
     
     const imagePrompt = promptElements.join(' ');
 
-    const {media} = await ai.generate({
-      model: 'googleai/gemini-2.0-flash-exp',
-      prompt: imagePrompt,
-      config: {
-        responseModalities: ['TEXT', 'IMAGE'], 
-        safetySettings: [ 
-          { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-          { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-          { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-          { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-        ],
-      },
-    });
+    try {
+      const {media} = await ai.generate({
+        model: 'googleai/gemini-2.0-flash-preview-image-generation',
+        prompt: imagePrompt,
+        config: {
+          responseModalities: ['TEXT', 'IMAGE'], 
+          safetySettings: [ 
+            { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+            { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+            { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+            { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+          ],
+        },
+      });
 
-    if (!media || !media.url) {
-      console.error('Image generation failed or did not return a media URL for prompt:', imagePrompt, 'Response media:', media);
-      throw new Error('Image generation failed or did not return a media URL.');
+      if (!media || !media.url) {
+        console.error('Image generation did not return a media URL for prompt:', imagePrompt, 'Response media:', media);
+        return { imageDataUri: undefined };
+      }
+      
+      return { imageDataUri: media.url };
+    } catch (error) {
+      console.error(`Caught error during image generation for "${input.recipeName}":`, error);
+      return { imageDataUri: undefined };
     }
-    
-    return { imageDataUri: media.url };
   }
 );
