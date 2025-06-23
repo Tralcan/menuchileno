@@ -30,7 +30,7 @@ import { Label } from "@/components/ui/label";
 
 
 export type RecipeForModal = CoreRecipe & { day: number; mealTitle: string; imageDataUri?: string };
-export type SelectedLunches = Record<number, CoreRecipe | null>;
+export type SelectedRecipes = Record<string, { recipe: CoreRecipe, day: number }>;
 
 // Use MenuFormValues for values received from MenuForm
 type MenuFormSubmitValues = MenuFormValues;
@@ -42,7 +42,7 @@ export default function HomePage() {
   const [isGeneratingNutrition, setIsGeneratingNutrition] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [menuData, setMenuData] = useState<DailyMenu[] | null>(null);
-  const [selectedLunches, setSelectedLunches] = useState<SelectedLunches>({});
+  const [selectedRecipes, setSelectedRecipes] = useState<SelectedRecipes>({});
   const [shoppingList, setShoppingList] = useState<string[] | null>(null);
   const [nutritionalReport, setNutritionalReport] = useState<RecipeNutritionalInfo[] | null>(null);
   const [selectedRecipeForModal, setSelectedRecipeForModal] = useState<RecipeForModal | null>(null);
@@ -78,7 +78,7 @@ export default function HomePage() {
     setIsGeneratingMenu(true);
     setError(null);
     setMenuData(null);
-    setSelectedLunches({});
+    setSelectedRecipes({});
     setShoppingList(null);
     setNutritionalReport(null);
     setLoadingImages({});
@@ -98,11 +98,12 @@ export default function HomePage() {
 
       if (result && result.menu) {
         setMenuData(result.menu);
-        const initialSelections: SelectedLunches = {};
+        const initialSelections: SelectedRecipes = {};
         result.menu.forEach(dayMenu => {
-          initialSelections[dayMenu.day] = dayMenu.suggestedLunch;
+          const recipeKey = `day-${dayMenu.day}-suggested`;
+          initialSelections[recipeKey] = { recipe: dayMenu.suggestedLunch, day: dayMenu.day };
         });
-        setSelectedLunches(initialSelections);
+        setSelectedRecipes(initialSelections);
         
         // Save form preferences to cookie after successful generation
         const prefsToSave: MenuFormSubmitValues = {
@@ -136,8 +137,8 @@ export default function HomePage() {
 
         result.menu.forEach(dayMenu => {
           const processRecipeImage = async (recipe: CoreRecipe, day: number, mealType: 'suggested' | 'optional') => {
-            const recipeKey = `${recipe.recipeName}_${day}_${mealType}`;
-            setLoadingImages(prev => ({ ...prev, [recipeKey]: true }));
+            const recipeImageKey = `${recipe.recipeName}_${day}_${mealType}`;
+            setLoadingImages(prev => ({ ...prev, [recipeImageKey]: true }));
             try {
               const imageResult = await generateRecipeImage({
                 recipeName: recipe.recipeName,
@@ -160,22 +161,28 @@ export default function HomePage() {
                     return dm;
                   });
                 });
-                setSelectedLunches(currentSelectedLunches => {
-                    const daySelection = currentSelectedLunches[day];
-                    if (daySelection && daySelection.recipeName === recipe.recipeName) {
+                setSelectedRecipes(currentSelectedRecipes => {
+                    const recipeStateKey = `day-${day}-${mealType}`;
+                    if (currentSelectedRecipes[recipeStateKey]) {
                         return {
-                            ...currentSelectedLunches,
-                            [day]: { ...daySelection, imageDataUri: imageResult.imageDataUri }
+                            ...currentSelectedRecipes,
+                            [recipeStateKey]: {
+                                ...currentSelectedRecipes[recipeStateKey],
+                                recipe: {
+                                    ...currentSelectedRecipes[recipeStateKey].recipe,
+                                    imageDataUri: imageResult.imageDataUri,
+                                }
+                            }
                         };
                     }
-                    return currentSelectedLunches;
+                    return currentSelectedRecipes;
                 });
               }
             } catch (imgErr) {
               console.error(`Error generating image for ${recipe.recipeName} (${mealType}, day ${day}):`, imgErr);
               // Toast for image error removed as per user request
             } finally {
-              setLoadingImages(prev => ({ ...prev, [recipeKey]: false }));
+              setLoadingImages(prev => ({ ...prev, [recipeImageKey]: false }));
             }
           };
 
@@ -200,16 +207,25 @@ export default function HomePage() {
     }
   };
 
-  const handleLunchSelection = (day: number, recipe: CoreRecipe) => {
-    setSelectedLunches(prev => ({ ...prev, [day]: recipe }));
-    setShoppingList(null); 
-    setNutritionalReport(null); 
+  const handleRecipeSelection = (recipe: CoreRecipe, day: number, mealType: 'suggested' | 'optional', isSelected: boolean) => {
+    const recipeKey = `day-${day}-${mealType}`;
+    setSelectedRecipes(prev => {
+        const newSelections = { ...prev };
+        if (isSelected) {
+            newSelections[recipeKey] = { recipe, day };
+        } else {
+            delete newSelections[recipeKey];
+        }
+        return newSelections;
+    });
+    setShoppingList(null);
+    setNutritionalReport(null);
   };
 
   const handleGenerateShoppingList = async () => {
-    if (!menuData || Object.keys(selectedLunches).length === 0) {
+    if (Object.keys(selectedRecipes).length === 0) {
       toast({
-        title: "Selección Incompleta",
+        title: "Selección Vacía",
         description: "Por favor, selecciona al menos un almuerzo antes de generar la lista.",
         variant: "destructive",
       });
@@ -221,9 +237,8 @@ export default function HomePage() {
     setShoppingList(null);
 
 
-    const shoppingListInputItems: CreateShoppingListInput['menu'] = Object.values(selectedLunches)
-      .filter((recipe): recipe is CoreRecipe => recipe !== null) 
-      .map(recipe => ({
+    const shoppingListInputItems: CreateShoppingListInput['menu'] = Object.values(selectedRecipes)
+      .map(({ recipe }) => ({
         dishName: recipe.recipeName,
         ingredients: recipe.ingredients,
       }));
@@ -266,24 +281,17 @@ export default function HomePage() {
   };
 
   const handleGenerateNutritionalInfo = async () => {
-     if (!menuData) {
-      toast({ title: "Error", description: "Primero genera un menú.", variant: "destructive" });
-      return;
-    }
-    const selectedCount = Object.values(selectedLunches).filter(lunch => lunch !== null).length;
-    if (selectedCount < menuData.length) {
-      const unselectedDays = menuData.length - selectedCount;
+     if (Object.keys(selectedRecipes).length === 0) {
       toast({
-          title: "Selección Incompleta",
-          description: `Por favor, selecciona un almuerzo para cada día del menú antes de generar la información nutricional. Faltan ${unselectedDays} día(s).`,
+          title: "Selección Vacía",
+          description: `Por favor, selecciona al menos un almuerzo para generar la información nutricional.`,
           variant: "destructive",
       });
       return;
     }
     
-    const nutritionalInputItems: NutritionalRecipeInput[] = Object.values(selectedLunches)
-      .filter((recipe): recipe is CoreRecipe => recipe !== null)
-      .map(recipe => ({
+    const nutritionalInputItems: NutritionalRecipeInput[] = Object.values(selectedRecipes)
+      .map(({ recipe }) => ({
         recipeName: recipe.recipeName,
         ingredients: recipe.ingredients,
         numberOfOriginalServings: currentNumberOfPeople,
@@ -341,17 +349,14 @@ export default function HomePage() {
       return;
     }
 
-    const menuToEmail: SelectedMenuItem[] = Object.entries(selectedLunches)
-      .filter(([_, recipe]) => recipe !== null)
-      .map(([dayStr, recipe]) => {
-        const day = parseInt(dayStr, 10);
-        const coreRecipe = recipe as CoreRecipe;
+    const menuToEmail: SelectedMenuItem[] = Object.values(selectedRecipes)
+      .map(({ recipe, day }) => {
         return {
           day,
-          recipeName: coreRecipe.recipeName,
-          ingredients: coreRecipe.ingredients,
-          instructions: coreRecipe.instructions,
-          evocativeDescription: coreRecipe.evocativeDescription,
+          recipeName: recipe.recipeName,
+          ingredients: recipe.ingredients,
+          instructions: recipe.instructions,
+          evocativeDescription: recipe.evocativeDescription,
         };
       })
       .sort((a, b) => a.day - b.day);
@@ -404,9 +409,7 @@ export default function HomePage() {
     setIsCoffeeModalOpen(false);
   };
   
-  const canGenerateAdditionalInfo = menuData && Object.values(selectedLunches).filter(l => l !== null).length > 0;
-  const allLunchesSelected = menuData && Object.values(selectedLunches).filter(l => l !== null).length === menuData.length;
-
+  const canGenerateAdditionalInfo = menuData && Object.keys(selectedRecipes).length > 0;
 
   return (
     <div className="space-y-12">
@@ -458,8 +461,8 @@ export default function HomePage() {
         <>
           <MenuDisplay 
             menuData={menuData} 
-            selectedLunches={selectedLunches}
-            onLunchSelect={handleLunchSelection}
+            selectedRecipes={selectedRecipes}
+            onRecipeSelect={handleRecipeSelection}
             onViewRecipe={handleViewRecipe}
             loadingImages={loadingImages}
           />
@@ -533,10 +536,9 @@ export default function HomePage() {
               </Button>
               <Button 
                 onClick={handleGenerateNutritionalInfo} 
-                disabled={isGeneratingNutrition || isGeneratingMenu || isGeneratingList || isSendingMenuEmail || !allLunchesSelected}
+                disabled={isGeneratingNutrition || isGeneratingMenu || isGeneratingList || isSendingMenuEmail}
                 size="lg"
                 className="bg-accent hover:bg-accent/90 text-accent-foreground"
-                title={!allLunchesSelected ? "Debes seleccionar un almuerzo para cada día del menú." : ""}
               >
                 <ClipboardList className="mr-2 h-5 w-5" />
                 {isGeneratingNutrition ? "Analizando Nutrición..." : "Información Nutricional"}
