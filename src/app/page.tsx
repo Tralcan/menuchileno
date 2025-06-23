@@ -357,6 +357,7 @@ export default function HomePage() {
           ingredients: recipe.ingredients,
           instructions: recipe.instructions,
           evocativeDescription: recipe.evocativeDescription,
+          suggestedMusic: recipe.suggestedMusic,
         };
       })
       .sort((a, b) => a.day - b.day);

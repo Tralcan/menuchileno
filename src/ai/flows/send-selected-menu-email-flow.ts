@@ -1,3 +1,4 @@
+
 // src/ai/flows/send-selected-menu-email-flow.ts
 'use server';
 /**
@@ -18,6 +19,7 @@ const SelectedMenuItemSchema = z.object({
   ingredients: z.array(z.string()).describe('Lista de ingredientes para la receta.'),
   instructions: z.string().describe('Instrucciones para preparar la receta.'),
   evocativeDescription: z.string().describe('Descripción evocadora de la receta.'),
+  suggestedMusic: z.string().describe('Sugerencia musical para acompañar la receta.'),
 });
 export type SelectedMenuItem = z.infer<typeof SelectedMenuItemSchema>;
 
@@ -46,6 +48,9 @@ function generateMenuEmailHtml(menu: SelectedMenuItem[]): string {
       </h3>
       <p style="font-style: italic; color: #555; margin-bottom: 15px; font-size: 0.95em;">${item.evocativeDescription}</p>
       
+      <h4 style="color: #d9534f; margin-top: 15px; margin-bottom: 8px; font-size: 1.1em;">Música Sugerida:</h4>
+      <p style="color: #555; font-size: 0.9em;">🎵 ${item.suggestedMusic}</p>
+
       <h4 style="color: #d9534f; margin-top: 15px; margin-bottom: 8px; font-size: 1.1em;">Ingredientes:</h4>
       <ul style="color: #555; padding-left: 20px; margin-top: 0; margin-bottom:15px; font-size: 0.9em; list-style-type: disc;">
         ${item.ingredients.map(ing => `<li>${ing}</li>`).join('')}

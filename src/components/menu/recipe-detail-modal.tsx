@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { UtensilsCrossed, ListChecks, Info, CalendarClock, Sparkles, Users, CookingPot, Youtube } from 'lucide-react';
+import { UtensilsCrossed, ListChecks, Info, CalendarClock, Sparkles, Users, CookingPot, Youtube, Music } from 'lucide-react';
 
 interface RecipeDetailModalProps {
   recipe: RecipeForModal | null;
@@ -45,6 +45,13 @@ export default function RecipeDetailModal({ recipe, isOpen, onClose }: RecipeDet
               <h3 className="font-headline text-xl mb-2 flex items-center"><Sparkles size={20} className="mr-2 text-primary"/>Descripción Evocadora:</h3>
               <p className="text-sm italic text-muted-foreground bg-secondary/30 p-4 rounded-md">
                 {recipe.evocativeDescription}
+              </p>
+            </div>
+
+            <div>
+              <h3 className="font-headline text-xl mb-2 flex items-center"><Music size={20} className="mr-2 text-primary"/>Música Sugerida:</h3>
+              <p className="text-sm text-muted-foreground bg-secondary/30 p-4 rounded-md">
+                {recipe.suggestedMusic}
               </p>
             </div>
 
